@@ -1,0 +1,262 @@
+:root {
+  --primary-gold: #FFC107;
+  /* Adjust based on exact color picker later if needed */
+  --primary-orange: #F59E0B;
+  --text-dark: #1F2937;
+  --text-gray: #6B7280;
+  --bg-white: #FFFFFF;
+  --bg-light: #FFFBF2;
+  /* Light cream background seen in designs */
+  --font-main: 'Inter', sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: var(--font-main);
+  background-color: #f3f4f6;
+  /* Gray background outside the app on desktop */
+  display: flex;
+  justify-content: center;
+  min-height: 100vh;
+}
+
+#root {
+  width: 100%;
+}
+
+.app-container {
+  width: 100%;
+  max-width: 420px;
+  /* Mobile width cap */
+  min-height: 100vh;
+  background-color: var(--bg-white);
+  margin: 0 auto;
+  position: relative;
+  overflow-x: hidden;
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+}
+
+/* Typography Utilities */
+.text-center {
+  text-align: center;
+}
+
+.font-bold {
+  font-weight: 700;
+}
+
+.flex {
+  display: flex;
+}
+
+.flex-col {
+  flex-direction: column;
+}
+
+.items-center {
+  align-items: center;
+}
+
+.justify-center {
+  justify-content: center;
+}
+
+.w-full {
+  width: 100%;
+}
+
+.h-full {
+  height: 100%;
+}
+
+/* Buttons & Inputs Shared Styles */
+.btn-primary {
+  background: linear-gradient(to right, #FBBC05, #F59E0B);
+  color: black;
+  font-weight: 700;
+  padding: 14px 24px;
+  border: none;
+  border-radius: 12px;
+  width: 100%;
+  font-size: 16px;
+  cursor: pointer;
+  transition: transform 0.1s;
+}
+
+.btn-primary:active {
+  transform: scale(0.98);
+}
+
+.input-field {
+  width: 100%;
+  padding: 14px;
+  border: 1px solid #E5E7EB;
+  border-radius: 12px;
+  font-size: 16px;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.input-field:focus {
+  border-color: var(--primary-gold);
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.ani-fade-in {
+  animation: fadeIn 0.5s ease-out forwards;
+}
+
+@keyframes ripple {
+  0% {
+    transform: scale(1);
+    opacity: 0.6;
+  }
+
+  100% {
+    transform: scale(1.6);
+    opacity: 0;
+  }
+}
+
+.ripple-effect {
+  position: absolute;
+  border-radius: 50%;
+  background: rgba(230, 126, 34, 0.4);
+  animation: ripple 2s infinite ease-out;
+}
+
+.ripple-1 {
+  width: 90px;
+  height: 90px;
+  animation-delay: 0s;
+}
+
+.ripple-2 {
+  width: 90px;
+  height: 90px;
+  animation-delay: 0.6s;
+}
+
+.ripple-3 {
+  width: 90px;
+  height: 90px;
+  animation-delay: 1.2s;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes wave {
+  0% {
+    height: 10px;
+  }
+
+  50% {
+    height: 40px;
+  }
+
+  100% {
+    height: 10px;
+  }
+}
+
+
+/* Hide scrollbar for clean UI */
+::-webkit-scrollbar {
+  width: 0px;
+  background: transparent;
+}
+
+
+/* Success Screen Animations */
+@keyframes fadeInScale {
+  0% {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.ani-text-enter {
+  animation: fadeInScale 0.5s ease-out forwards;
+  /* Reduced from 0.8s */
+}
+
+@keyframes floatDown {
+  0% {
+    opacity: 0;
+    transform: translateY(-20px) scale(0.8);
+  }
+
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+
+.ani-mic-combined {
+  animation:
+    floatDown 0.6s cubic-bezier(0.22, 1, 0.36, 1) 0.3s forwards,
+    gentlePulse 1.5s ease-in-out 0.9s infinite;
+  opacity: 0;
+  /* Initial state */
+}
+
+@keyframes dropIn {
+  0% {
+    opacity: 0;
+    transform: translateY(-50px) scale(1.1);
+  }
+
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.ani-mic-drop {
+  animation: dropIn 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) 0.2s forwards;
+  opacity: 0;
+}
+
+@keyframes gentlePulse {
+  0% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(255, 193, 7, 0.4);
+  }
+
+  50% {
+    transform: scale(1.05);
+    box-shadow: 0 0 0 10px rgba(255, 193, 7, 0);
+  }
+
+  100% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(255, 193, 7, 0);
+  }
+}
