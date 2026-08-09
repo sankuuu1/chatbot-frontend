@@ -9,12 +9,12 @@ const HomeDashboard = () => {
     return (
         <div style={{ backgroundColor: '#FFFBF2', minHeight: '100vh', display: 'flex', flexDirection: 'column', position: 'relative' }}>
             {/* Header */}
-            <div style={{ padding: '10px 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '10px' }}>
-                <div style={{ display: 'flex', alignItems: 'center' }}>
+            <div style={{ padding: '10px 20px 0', display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '0px' }}>
+                <div style={{ display: 'flex', alignItems: 'flex-start' }}>
                     <img
                         src={bandhuLogo}
                         alt="Bandhu"
-                        style={{ height: '90px', width: 'auto', objectFit: 'contain', marginLeft: '-10px' }}
+                        style={{ height: '80px', width: 'auto', objectFit: 'contain', transform: 'scale(1.3)', transformOrigin: 'top left' }}
                     />
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', background: 'white', padding: '5px 10px', borderRadius: '20px', border: '1px solid #ddd' }}>
@@ -24,22 +24,22 @@ const HomeDashboard = () => {
             </div>
 
             {/* Main Greeting & Mic */}
-            <div style={{ textAlign: 'center', marginTop: '0px' }}>
+            <div style={{ textAlign: 'center', marginTop: '-5px' }}>
                 <p style={{ fontSize: '24px', fontWeight: 'bold', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '5px' }}>
                     🙏 नमस्कार!
                 </p>
-                <p style={{ color: '#666', marginTop: '5px' }}>निर्धास्त बोला, मी तुमची भाषा समजतो</p>
+                <p style={{ color: '#666', marginTop: '4px', fontSize: '15px' }}>निर्धास्त बोला, मी तुमची भाषा समजतो</p>
 
                 {/* Mic Button with Ripples */}
-                <div style={{ position: 'relative', height: '160px', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '15px 0' }}>
+                <div style={{ position: 'relative', height: '130px', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '15px 0' }}>
                     <div className="ripple-effect ripple-1"></div>
                     <div className="ripple-effect ripple-2"></div>
                     <div className="ripple-effect ripple-3"></div>
                     <button
                         onClick={() => navigate('/chat')}
                         style={{
-                            width: '90px',
-                            height: '90px',
+                            width: '80px',
+                            height: '80px',
                             borderRadius: '50%',
                             background: '#D35400',
                             border: '4px solid white',
@@ -58,14 +58,13 @@ const HomeDashboard = () => {
             </div>
 
             {/* Quick Chips */}
-            <div style={{ display: 'flex', gap: '10px', overflowX: 'auto', padding: '0 20px', paddingBottom: '15px', justifyContent: 'center' }}>
+            <div style={{ display: 'flex', gap: '10px', overflowX: 'auto', padding: '0 20px', paddingBottom: '10px', justifyContent: 'center' }}>
                 <div className="chip" style={chipStyle}>आज पाऊस पडेल का?</div>
                 <div className="chip" style={chipStyle} onClick={() => navigate('/chat')}>कापसावर कीड आली आहे</div>
             </div>
             <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '15px' }}>
                 <div className="chip" style={chipStyle}>७वी गणित समजाव</div>
             </div>
-
 
             {/* Grid Menu */}
             <div style={{ padding: '0 20px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '80px' }}>
