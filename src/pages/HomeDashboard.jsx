@@ -63,14 +63,22 @@ const HomeDashboard = () => {
                 alignItems: 'center',
                 justifyContent: 'space-between'
             }}>
-                <div style={{ display: 'flex', alignItems: 'center' }}>
+                <div style={{
+                    width: '72px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'flex-start',
+                    overflow: 'hidden'
+                }}>
                     <img
                         src={bandhuLogo}
                         alt="Bandhu"
                         style={{
-                            width: '48px',
+                            width: '100%',
                             height: 'auto',
-                            objectFit: 'contain'
+                            objectFit: 'contain',
+                            transform: 'scale(1.15)',
+                            transformOrigin: 'left center'
                         }}
                     />
                 </div>
