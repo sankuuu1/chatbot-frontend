@@ -53,7 +53,7 @@ const HomeDashboard = () => {
                     <img
                         src={bandhuLogo}
                         alt="Bandhu"
-                        style={{ height: '48px', width: 'auto', objectFit: 'contain' }}
+                        style={{ height: '72px', width: 'auto', objectFit: 'contain' }}
                     />
                 </div>
 
