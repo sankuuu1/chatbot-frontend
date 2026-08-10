@@ -1,13 +1,13 @@
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Devanagari:wght@400;500;600;700;800;900&family=Inter:wght@400;500;600;700;800&display=swap');
+
 :root {
   --primary-gold: #FFC107;
-  /* Adjust based on exact color picker later if needed */
   --primary-orange: #F59E0B;
   --text-dark: #1F2937;
   --text-gray: #6B7280;
   --bg-white: #FFFFFF;
   --bg-light: #FFFBF2;
-  /* Light cream background seen in designs */
-  --font-main: 'Inter', sans-serif;
+  --font-main: 'Noto Sans Devanagari', 'Inter', sans-serif;
 }
 
 * {

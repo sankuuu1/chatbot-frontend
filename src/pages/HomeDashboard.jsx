@@ -8,19 +8,41 @@ import {
     MessageSquare,
     Settings,
     ArrowRight,
+    ArrowUp,
     Sprout,
-    ChevronDown
+    Heart,
+    HelpCircle,
+    ChevronDown,
+    Check,
+    X
 } from 'lucide-react';
 import bandhuLogo from '../assets/Gemini_Generated_Image_za4cfxza4cfxza4c-removebg-preview.png';
 
 const HomeDashboard = () => {
     const navigate = useNavigate();
     const [searchInput, setSearchInput] = useState('');
+    const [selectedLang, setSelectedLang] = useState('मराठी');
+    const [isLangModalOpen, setIsLangModalOpen] = useState(false);
+    const [showAllCategories, setShowAllCategories] = useState(false);
 
     const handleSearchSubmit = (e) => {
         if (e.key === 'Enter' && searchInput.trim()) {
             navigate('/chat', { state: { query: searchInput.trim() } });
         }
+    };
+
+    // Camera Upload Trigger
+    const handleCameraClick = () => {
+        const fileInput = document.createElement('input');
+        fileInput.type = 'file';
+        fileInput.accept = 'image/*';
+        fileInput.onchange = (e) => {
+            if (e.target.files && e.target.files[0]) {
+                alert(`फोटो निवडला: ${e.target.files[0].name}. (विश्लेषणासाठी चॅटकडे पाठवत आहे)`);
+                navigate('/chat', { state: { hasImage: true, imageName: e.target.files[0].name } });
+            }
+        };
+        fileInput.click();
     };
 
     return (
@@ -31,7 +53,7 @@ const HomeDashboard = () => {
             flexDirection: 'column',
             position: 'relative',
             paddingBottom: '100px',
-            fontFamily: "'Inter', system-ui, sans-serif"
+            fontFamily: "'Noto Sans Devanagari', 'Inter', system-ui, sans-serif"
         }}>
 
             {/* --- TOP HEADER --- */}
@@ -51,7 +73,7 @@ const HomeDashboard = () => {
 
                 {/* Top Right Language Dropdown Pill */}
                 <button
-                    onClick={() => navigate('/settings')}
+                    onClick={() => setIsLangModalOpen(true)}
                     style={{
                         background: 'white',
                         border: '1px solid #E5E7EB',
@@ -67,7 +89,7 @@ const HomeDashboard = () => {
                         boxShadow: '0 2px 6px rgba(0,0,0,0.02)'
                     }}
                 >
-                    <span>मराठी</span>
+                    <span>{selectedLang}</span>
                     <ChevronDown size={16} color="#6B7280" />
                 </button>
             </div>
@@ -185,12 +207,14 @@ const HomeDashboard = () => {
                             width: '100%',
                             fontSize: '15px',
                             color: '#1F2937',
-                            background: 'transparent'
+                            background: 'transparent',
+                            fontFamily: "'Noto Sans Devanagari', 'Inter', sans-serif"
                         }}
                     />
                     <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexShrink: 0 }}>
                         <button
-                            onClick={() => alert("कॅमेरा वैशिष्ट्य लवकरच येत आहे!")}
+                            onClick={handleCameraClick}
+                            title="फोटो अपलोड करा"
                             style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#E65100', padding: 0 }}
                         >
                             <Camera size={20} />
@@ -198,6 +222,7 @@ const HomeDashboard = () => {
                         <div style={{ height: '18px', width: '1px', background: '#E5E7EB' }}></div>
                         <button
                             onClick={() => navigate('/chat')}
+                            title="आवाजाने बोला"
                             style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#E65100', padding: 0 }}
                         >
                             <Mic size={20} />
@@ -260,6 +285,7 @@ const HomeDashboard = () => {
                         subtitle="पीक, कीड, बाजारभाव, फवारणी सल्ला"
                         titleColor="#1B5E20"
                         cardBg="#F4F8F4"
+                        cardBorder="#E2EFE2"
                         badgeBg="#E8F5E9"
                         arrowBg="#C8E6C9"
                         arrowColor="#1B5E20"
@@ -273,17 +299,51 @@ const HomeDashboard = () => {
                         subtitle="अभ्यास, गृहपाठ, प्रश्न व स्पष्टीकरण"
                         titleColor="#0D47A1"
                         cardBg="#F4F8FC"
+                        cardBorder="#E2EDF8"
                         badgeBg="#E3F2FD"
                         arrowBg="#BBDEFB"
                         arrowColor="#0D47A1"
                         icon={<BookOpen size={26} color="#1565C0" strokeWidth={2} />}
                         onClick={() => navigate('/chat', { state: { category: 'education' } })}
                     />
+
+                    {/* EXPANDED CATEGORIES (HEALTH & HELP) */}
+                    {showAllCategories && (
+                        <>
+                            {/* HEALTH CARD - SOFT PINK TINT */}
+                            <CategoryCard
+                                title="आरोग्य"
+                                subtitle="लक्षणे, प्राथमिक माहिती, आरोग्य सल्ला"
+                                titleColor="#B71C1C"
+                                cardBg="#FFF5F5"
+                                cardBorder="#FDE8E8"
+                                badgeBg="#FFEBEE"
+                                arrowBg="#FFCDD2"
+                                arrowColor="#B71C1C"
+                                icon={<Heart size={26} color="#C62828" strokeWidth={2} />}
+                                onClick={() => navigate('/chat', { state: { category: 'health' } })}
+                            />
+
+                            {/* HELP CARD - SOFT AMBER TINT */}
+                            <CategoryCard
+                                title="मदत"
+                                subtitle="दैनंदिन प्रश्न, सरकारी माहिती, इतर मदत"
+                                titleColor="#E65100"
+                                cardBg="#FFFDF0"
+                                cardBorder="#FEF3C7"
+                                badgeBg="#FFF3E0"
+                                arrowBg="#FFE0B2"
+                                arrowColor="#E65100"
+                                icon={<HelpCircle size={26} color="#EF6C00" strokeWidth={2} />}
+                                onClick={() => navigate('/chat', { state: { category: 'help' } })}
+                            />
+                        </>
+                    )}
                 </div>
 
-                {/* "सर्व विषय पाहा →" FULL-WIDTH BUTTON */}
+                {/* "सर्व विषय पाहा →" / "कमी विषय पाहा ↑" TOGGLE BUTTON */}
                 <button
-                    onClick={() => navigate('/chat')}
+                    onClick={() => setShowAllCategories(!showAllCategories)}
                     style={{
                         width: '100%',
                         marginTop: '16px',
@@ -302,10 +362,87 @@ const HomeDashboard = () => {
                         boxShadow: '0 2px 6px rgba(230,81,0,0.04)'
                     }}
                 >
-                    <span>सर्व विषय पाहा</span>
-                    <ArrowRight size={18} />
+                    <span>{showAllCategories ? 'कमी विषय पाहा' : 'सर्व विषय पाहा'}</span>
+                    {showAllCategories ? <ArrowUp size={18} /> : <ArrowRight size={18} />}
                 </button>
             </div>
+
+
+            {/* --- LANGUAGE SELECTION MODAL --- */}
+            {isLangModalOpen && (
+                <div style={{
+                    position: 'fixed',
+                    inset: 0,
+                    background: 'rgba(0,0,0,0.4)',
+                    backdropFilter: 'blur(3px)',
+                    zIndex: 100,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    padding: '20px'
+                }}>
+                    <div style={{
+                        background: 'white',
+                        borderRadius: '24px',
+                        padding: '24px',
+                        width: '100%',
+                        maxWidth: '340px',
+                        boxShadow: '0 10px 25px rgba(0,0,0,0.15)'
+                    }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+                            <h3 style={{ fontSize: '18px', fontWeight: '800', color: '#111827' }}>भाषा निवडा (Language)</h3>
+                            <button onClick={() => setIsLangModalOpen(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#6B7280' }}>
+                                <X size={20} />
+                            </button>
+                        </div>
+
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginBottom: '20px' }}>
+                            {['मराठी', 'English', 'हिंदी'].map((lang) => (
+                                <button
+                                    key={lang}
+                                    onClick={() => {
+                                        setSelectedLang(lang);
+                                        setIsLangModalOpen(false);
+                                    }}
+                                    style={{
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'space-between',
+                                        padding: '14px 16px',
+                                        borderRadius: '16px',
+                                        border: selectedLang === lang ? '2px solid #E65100' : '1px solid #E5E7EB',
+                                        background: selectedLang === lang ? '#FFF8F0' : 'white',
+                                        fontSize: '15px',
+                                        fontWeight: selectedLang === lang ? '700' : '500',
+                                        color: selectedLang === lang ? '#E65100' : '#374151',
+                                        cursor: 'pointer'
+                                    }}
+                                >
+                                    <span>{lang}</span>
+                                    {selectedLang === lang && <Check size={18} color="#E65100" />}
+                                </button>
+                            ))}
+                        </div>
+
+                        <button
+                            onClick={() => setIsLangModalOpen(false)}
+                            style={{
+                                width: '100%',
+                                padding: '12px',
+                                borderRadius: '14px',
+                                border: 'none',
+                                background: '#E65100',
+                                color: 'white',
+                                fontWeight: '700',
+                                fontSize: '15px',
+                                cursor: 'pointer'
+                            }}
+                        >
+                            निश्चित करा (Confirm)
+                        </button>
+                    </div>
+                </div>
+            )}
 
 
             {/* --- BOTTOM NAVIGATION BAR --- */}
@@ -354,7 +491,7 @@ const SuggestionChip = ({ icon, text, onClick }) => (
             background: 'white',
             border: '1px solid #E2E8F0',
             borderRadius: '30px',
-            padding: '10px 16px',
+            padding: '10px 18px',
             fontSize: '13px',
             fontWeight: '600',
             color: '#1E293B',
@@ -363,7 +500,7 @@ const SuggestionChip = ({ icon, text, onClick }) => (
             alignItems: 'center',
             gap: '8px',
             cursor: 'pointer',
-            boxShadow: '0 2px 6px rgba(0,0,0,0.02)'
+            boxShadow: '0 2px 8px rgba(0,0,0,0.02)'
         }}
     >
         <span style={{ fontSize: '15px' }}>{icon}</span>
@@ -371,8 +508,8 @@ const SuggestionChip = ({ icon, text, onClick }) => (
     </button>
 );
 
-// Modern Category Card Component matching exact design
-const CategoryCard = ({ title, subtitle, titleColor, cardBg, badgeBg, arrowBg, arrowColor, icon, onClick }) => (
+// Modern Category Card Component
+const CategoryCard = ({ title, subtitle, titleColor, cardBg, cardBorder, badgeBg, arrowBg, arrowColor, icon, onClick }) => (
     <div
         onClick={onClick}
         style={{
@@ -382,7 +519,7 @@ const CategoryCard = ({ title, subtitle, titleColor, cardBg, badgeBg, arrowBg, a
             display: 'flex',
             flexDirection: 'column',
             justifyContent: 'space-between',
-            border: '1px solid #EAF0EA',
+            border: `1px solid ${cardBorder || '#EAF0EA'}`,
             cursor: 'pointer',
             minHeight: '145px',
             position: 'relative'
