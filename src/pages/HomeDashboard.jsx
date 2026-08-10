@@ -3,9 +3,6 @@ import { useNavigate } from 'react-router-dom';
 import {
     Mic,
     BookOpen,
-    Tractor,
-    Heart,
-    HelpCircle,
     Home,
     MessageSquare,
     Settings,
@@ -36,17 +33,18 @@ const HomeDashboard = () => {
 
     return (
         <div style={{
-            backgroundColor: '#FFFBF2',
+            backgroundColor: '#FFFDF7',
             minHeight: '100vh',
             display: 'flex',
             flexDirection: 'column',
             position: 'relative',
-            paddingBottom: '90px'
+            paddingBottom: '90px',
+            fontFamily: "'Inter', system-ui, sans-serif"
         }}>
 
             {/* --- TOP HEADER --- */}
             <div style={{
-                padding: '16px 20px 10px',
+                padding: '18px 22px 10px',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'space-between'
@@ -55,7 +53,7 @@ const HomeDashboard = () => {
                     <img
                         src={bandhuLogo}
                         alt="Bandhu"
-                        style={{ height: '52px', width: 'auto', objectFit: 'contain' }}
+                        style={{ height: '48px', width: 'auto', objectFit: 'contain' }}
                     />
                 </div>
 
@@ -67,15 +65,15 @@ const HomeDashboard = () => {
                         width: '44px',
                         height: '44px',
                         borderRadius: '50%',
-                        background: 'linear-gradient(135deg, #E65100 0%, #D35400 100%)',
+                        background: '#D84315',
                         border: '2px solid white',
-                        boxShadow: '0 3px 10px rgba(211, 84, 0, 0.25)',
+                        boxShadow: '0 4px 12px rgba(216, 67, 21, 0.3)',
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
                         color: 'white',
                         fontWeight: '800',
-                        fontSize: '16px',
+                        fontSize: '17px',
                         cursor: 'pointer',
                         flexShrink: 0
                     }}
@@ -85,17 +83,18 @@ const HomeDashboard = () => {
             </div>
 
             {/* --- MAIN GREETING --- */}
-            <div style={{ textAlign: 'center', marginTop: '10px' }}>
+            <div style={{ textAlign: 'center', marginTop: '12px' }}>
                 <h1 style={{
-                    fontSize: '30px',
-                    fontWeight: '900',
-                    color: '#1F2937',
+                    fontSize: '32px',
+                    fontWeight: '800',
+                    color: '#111827',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    gap: '8px'
+                    gap: '8px',
+                    margin: 0
                 }}>
-                    नमस्कार! <span style={{ fontSize: '28px' }}>🙏</span>
+                    नमस्कार! <span style={{ fontSize: '30px' }}>🙏</span>
                 </h1>
                 <p style={{
                     color: '#4B5563',
@@ -106,22 +105,38 @@ const HomeDashboard = () => {
                     बोला, बंधू समजून घेईल.
                 </p>
 
-                {/* MIC BUTTON WITH GLOW RINGS */}
+                {/* MIC BUTTON WITH CONCENTRIC GLOW RINGS */}
                 <div style={{
                     position: 'relative',
-                    height: '140px',
+                    height: '180px',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    margin: '18px 0 10px'
+                    margin: '12px 0 6px'
                 }}>
-                    <div className="ripple-effect ripple-1" style={{ width: '110px', height: '110px' }}></div>
-                    <div className="ripple-effect ripple-2" style={{ width: '110px', height: '110px' }}></div>
+                    {/* Concentric Soft Background Rings matching mockup */}
+                    <div style={{
+                        position: 'absolute',
+                        width: '180px',
+                        height: '180px',
+                        borderRadius: '50%',
+                        background: 'rgba(255, 235, 218, 0.65)',
+                        zIndex: 1
+                    }}></div>
+                    <div style={{
+                        position: 'absolute',
+                        width: '140px',
+                        height: '140px',
+                        borderRadius: '50%',
+                        background: 'rgba(255, 210, 170, 0.55)',
+                        zIndex: 2
+                    }}></div>
+
                     <button
                         onClick={() => navigate('/chat')}
                         style={{
-                            width: '94px',
-                            height: '94px',
+                            width: '92px',
+                            height: '92px',
                             borderRadius: '50%',
                             background: 'linear-gradient(135deg, #FF6F00 0%, #E65100 100%)',
                             border: '4px solid white',
@@ -135,11 +150,11 @@ const HomeDashboard = () => {
                             transition: 'transform 0.15s ease'
                         }}
                     >
-                        <Mic size={44} />
+                        <Mic size={42} strokeWidth={2.2} />
                     </button>
                 </div>
 
-                <p style={{ fontSize: '13px', color: '#1F2937', fontWeight: '700', marginTop: '4px' }}>
+                <p style={{ fontSize: '14px', color: '#1F2937', fontWeight: '700', marginTop: '2px' }}>
                     बोलण्यासाठी मायकवर टॅप करा
                 </p>
             </div>
@@ -147,10 +162,10 @@ const HomeDashboard = () => {
             {/* --- QUICK SUGGESTION CHIPS --- */}
             <div style={{
                 display: 'flex',
-                gap: '10px',
+                gap: '12px',
                 overflowX: 'auto',
-                padding: '20px 20px 10px',
-                justifyContent: 'flex-start'
+                padding: '24px 20px 12px',
+                justifyContent: 'center'
             }}>
                 <SuggestionChip
                     icon="🌧️"
@@ -162,21 +177,16 @@ const HomeDashboard = () => {
                     text="कापसावर कीड आली आहे"
                     onClick={() => navigate('/chat', { state: { category: 'farming', query: 'कापसावर कीड आली आहे' } })}
                 />
-                <SuggestionChip
-                    icon="📖"
-                    text="७वी गणित समजाव"
-                    onClick={() => navigate('/chat', { state: { category: 'education', query: '७वी गणित समजाव' } })}
-                />
             </div>
 
 
             {/* --- CATEGORIES SECTION --- */}
-            <div style={{ padding: '10px 20px 20px' }}>
+            <div style={{ padding: '12px 20px 20px' }}>
                 <h3 style={{
-                    fontSize: '18px',
+                    fontSize: '20px',
                     fontWeight: '800',
-                    color: '#111827',
-                    marginBottom: '14px'
+                    color: '#0F172A',
+                    marginBottom: '16px'
                 }}>
                     कशाबद्दल मदत हवी?
                 </h3>
@@ -184,7 +194,7 @@ const HomeDashboard = () => {
                 <div style={{
                     display: 'grid',
                     gridTemplateColumns: '1fr 1fr',
-                    gap: '12px'
+                    gap: '14px'
                 }}>
                     {/* FARMING CARD */}
                     <CategoryCard
@@ -194,7 +204,7 @@ const HomeDashboard = () => {
                         badgeBg="#E8F5E9"
                         arrowBg="#C8E6C9"
                         arrowColor="#1B5E20"
-                        icon={<Sprout size={26} color="#2E7D32" />}
+                        icon={<Sprout size={28} color="#2E7D32" strokeWidth={2} />}
                         onClick={() => navigate('/chat', { state: { category: 'farming' } })}
                     />
 
@@ -206,32 +216,8 @@ const HomeDashboard = () => {
                         badgeBg="#E3F2FD"
                         arrowBg="#BBDEFB"
                         arrowColor="#0D47A1"
-                        icon={<BookOpen size={26} color="#1565C0" />}
+                        icon={<BookOpen size={28} color="#1565C0" strokeWidth={2} />}
                         onClick={() => navigate('/chat', { state: { category: 'education' } })}
-                    />
-
-                    {/* HEALTH CARD */}
-                    <CategoryCard
-                        title="आरोग्य"
-                        subtitle="लक्षणे, प्राथमिक माहिती, आरोग्य सल्ला"
-                        titleColor="#B71C1C"
-                        badgeBg="#FFEBEE"
-                        arrowBg="#FFCDD2"
-                        arrowColor="#B71C1C"
-                        icon={<Heart size={26} color="#C62828" />}
-                        onClick={() => navigate('/chat', { state: { category: 'health' } })}
-                    />
-
-                    {/* HELP CARD */}
-                    <CategoryCard
-                        title="मदत"
-                        subtitle="दैनंदिन प्रश्न, सरकारी माहिती, इतर मदत"
-                        titleColor="#E65100"
-                        badgeBg="#FFF3E0"
-                        arrowBg="#FFE0B2"
-                        arrowColor="#E65100"
-                        icon={<HelpCircle size={26} color="#EF6C00" />}
-                        onClick={() => navigate('/chat', { state: { category: 'help' } })}
                     />
                 </div>
             </div>
@@ -248,24 +234,24 @@ const HomeDashboard = () => {
                 background: 'white',
                 display: 'flex',
                 justifyContent: 'space-around',
-                padding: '10px 15px',
-                borderTop: '1px solid #F3F4F6',
-                boxShadow: '0 -4px 15px rgba(0,0,0,0.04)',
+                padding: '10px 15px 12px',
+                borderTop: '1px solid #F1F5F9',
+                boxShadow: '0 -4px 15px rgba(0,0,0,0.03)',
                 zIndex: 30
             }}>
                 <NavItem
-                    icon={<Home size={22} />}
+                    icon={<Home size={24} />}
                     label="मुख्य"
                     active
                     onClick={() => navigate('/home')}
                 />
                 <NavItem
-                    icon={<MessageSquare size={22} />}
+                    icon={<MessageSquare size={24} />}
                     label="माझे प्रश्न"
                     onClick={() => navigate('/chat')}
                 />
                 <NavItem
-                    icon={<Settings size={22} />}
+                    icon={<Settings size={24} />}
                     label="सेटिंग्ज"
                     onClick={() => navigate('/settings')}
                 />
@@ -281,21 +267,21 @@ const SuggestionChip = ({ icon, text, onClick }) => (
         onClick={onClick}
         style={{
             background: 'white',
-            border: '1px solid #E5E7EB',
-            borderRadius: '24px',
-            padding: '10px 16px',
-            fontSize: '13px',
-            fontWeight: '600',
-            color: '#374151',
+            border: '1px solid #E2E8F0',
+            borderRadius: '30px',
+            padding: '10px 18px',
+            fontSize: '14px',
+            fontWeight: '700',
+            color: '#1E293B',
             whiteSpace: 'nowrap',
             display: 'inline-flex',
             alignItems: 'center',
             gap: '8px',
             cursor: 'pointer',
-            boxShadow: '0 2px 6px rgba(0,0,0,0.02)'
+            boxShadow: '0 2px 8px rgba(0,0,0,0.03)'
         }}
     >
-        <span style={{ fontSize: '15px' }}>{icon}</span>
+        <span style={{ fontSize: '16px' }}>{icon}</span>
         <span>{text}</span>
     </button>
 );
@@ -306,22 +292,22 @@ const CategoryCard = ({ title, subtitle, titleColor, badgeBg, arrowBg, arrowColo
         onClick={onClick}
         style={{
             background: 'white',
-            borderRadius: '20px',
-            padding: '16px',
+            borderRadius: '24px',
+            padding: '18px',
             display: 'flex',
             flexDirection: 'column',
             justifyContent: 'space-between',
-            boxShadow: '0 4px 15px rgba(0,0,0,0.03)',
-            border: '1px solid #F3F4F6',
+            boxShadow: '0 4px 20px rgba(0,0,0,0.03)',
+            border: '1px solid #F1F5F9',
             cursor: 'pointer',
-            minHeight: '130px',
+            minHeight: '140px',
             position: 'relative'
         }}
     >
         <div style={{ display: 'flex', alignItems: 'flex-start', gap: '12px' }}>
             <div style={{
-                width: '46px',
-                height: '46px',
+                width: '50px',
+                height: '50px',
                 borderRadius: '50%',
                 background: badgeBg,
                 display: 'flex',
@@ -332,20 +318,20 @@ const CategoryCard = ({ title, subtitle, titleColor, badgeBg, arrowBg, arrowColo
                 {icon}
             </div>
             <div>
-                <h4 style={{ fontSize: '16px', fontWeight: '800', color: titleColor, marginBottom: '4px' }}>
+                <h4 style={{ fontSize: '18px', fontWeight: '800', color: titleColor, marginBottom: '4px' }}>
                     {title}
                 </h4>
-                <p style={{ fontSize: '11px', color: '#6B7280', lineHeight: '1.4', fontWeight: '500' }}>
+                <p style={{ fontSize: '11px', color: '#64748B', lineHeight: '1.4', fontWeight: '500' }}>
                     {subtitle}
                 </p>
             </div>
         </div>
 
         {/* Circular Arrow Button at Bottom Right */}
-        <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '10px' }}>
+        <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '12px' }}>
             <div style={{
-                width: '28px',
-                height: '28px',
+                width: '32px',
+                height: '32px',
                 borderRadius: '50%',
                 background: arrowBg,
                 display: 'flex',
@@ -353,7 +339,7 @@ const CategoryCard = ({ title, subtitle, titleColor, badgeBg, arrowBg, arrowColo
                 justifyContent: 'center',
                 color: arrowColor
             }}>
-                <ArrowRight size={16} />
+                <ArrowRight size={18} strokeWidth={2.2} />
             </div>
         </div>
     </div>
@@ -384,11 +370,11 @@ const NavItem = ({ icon, label, active, onClick }) => (
                 borderRadius: '2px'
             }} />
         )}
-        {React.cloneElement(icon, { color: active ? '#E65100' : '#9CA3AF' })}
+        {React.cloneElement(icon, { color: active ? '#E65100' : '#94A3B8', strokeWidth: 2 })}
         <span style={{
             fontSize: '11px',
             marginTop: '4px',
-            color: active ? '#E65100' : '#6B7280',
+            color: active ? '#E65100' : '#64748B',
             fontWeight: active ? '700' : '500'
         }}>
             {label}
