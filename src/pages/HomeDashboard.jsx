@@ -64,7 +64,7 @@ const HomeDashboard = () => {
                 justifyContent: 'space-between'
             }}>
                 <div style={{
-                    width: '72px',
+                    width: '76px',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'flex-start',
@@ -77,7 +77,7 @@ const HomeDashboard = () => {
                             width: '100%',
                             height: 'auto',
                             objectFit: 'contain',
-                            transform: 'scale(1.15)',
+                            transform: 'scale(1.2)',
                             transformOrigin: 'left center'
                         }}
                     />
