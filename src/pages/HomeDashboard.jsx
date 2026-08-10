@@ -63,11 +63,11 @@ const HomeDashboard = () => {
                 alignItems: 'center',
                 justifyContent: 'space-between'
             }}>
-                <div style={{ display: 'flex', alignItems: 'center', height: '60px', overflow: 'visible' }}>
+                <div style={{ display: 'flex', alignItems: 'center' }}>
                     <img
                         src={bandhuLogo}
                         alt="Bandhu"
-                        style={{ height: '90px', width: 'auto', objectFit: 'contain', transform: 'scale(1.35)', transformOrigin: 'left center', marginLeft: '-4px' }}
+                        style={{ height: '42px', width: 'auto', objectFit: 'contain' }}
                     />
                 </div>
 
@@ -128,34 +128,22 @@ const HomeDashboard = () => {
                     बोला, <span style={{ color: '#E65100', fontWeight: '700' }}>बंधू</span> समजून घेईल.
                 </p>
 
-                {/* MIC BUTTON WITH CONCENTRIC GLOW RINGS */}
+                {/* MIC BUTTON WITH DYNAMIC VOICE WAVES */}
                 <div style={{
                     position: 'relative',
-                    height: '170px',
+                    height: '180px',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
                     margin: '10px 0 4px'
                 }}>
-                    {/* Outer & Inner Soft Glow Rings */}
-                    <div style={{
-                        position: 'absolute',
-                        width: '170px',
-                        height: '170px',
-                        borderRadius: '50%',
-                        background: 'rgba(255, 237, 224, 0.65)',
-                        zIndex: 1
-                    }}></div>
-                    <div style={{
-                        position: 'absolute',
-                        width: '135px',
-                        height: '135px',
-                        borderRadius: '50%',
-                        background: 'rgba(255, 218, 185, 0.55)',
-                        zIndex: 2
-                    }}></div>
+                    {/* DYNAMIC VOICE WAVE RINGS */}
+                    <div className="voice-wave-ring voice-wave-1"></div>
+                    <div className="voice-wave-ring voice-wave-2"></div>
+                    <div className="voice-wave-ring voice-wave-3"></div>
 
                     <button
+                        className="mic-pulse-btn"
                         onClick={() => navigate('/chat')}
                         style={{
                             width: '90px',
@@ -163,14 +151,12 @@ const HomeDashboard = () => {
                             borderRadius: '50%',
                             background: 'linear-gradient(135deg, #FF6F00 0%, #E65100 100%)',
                             border: '4px solid white',
-                            boxShadow: '0 8px 24px rgba(230,81,0,0.35)',
                             color: 'white',
                             display: 'flex',
                             alignItems: 'center',
                             justifyContent: 'center',
                             zIndex: 10,
-                            cursor: 'pointer',
-                            transition: 'transform 0.15s ease'
+                            cursor: 'pointer'
                         }}
                     >
                         <Mic size={40} strokeWidth={2.2} />

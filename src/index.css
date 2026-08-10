@@ -123,6 +123,66 @@ body {
   animation: fadeIn 0.5s ease-out forwards;
 }
 
+@keyframes dynamicWave {
+  0% {
+    transform: scale(0.95);
+    opacity: 0.75;
+    box-shadow: 0 0 0 0 rgba(230, 81, 0, 0.4);
+  }
+  50% {
+    transform: scale(1.35);
+    opacity: 0.35;
+    box-shadow: 0 0 20px 10px rgba(230, 81, 0, 0.2);
+  }
+  100% {
+    transform: scale(1.75);
+    opacity: 0;
+    box-shadow: 0 0 35px 20px rgba(230, 81, 0, 0);
+  }
+}
+
+@keyframes micPulse {
+  0%, 100% {
+    transform: scale(1);
+    box-shadow: 0 8px 24px rgba(230,81,0,0.35);
+  }
+  50% {
+    transform: scale(1.06);
+    box-shadow: 0 12px 32px rgba(230,81,0,0.5);
+  }
+}
+
+.voice-wave-ring {
+  position: absolute;
+  border-radius: 50%;
+  border: 2px solid rgba(245, 93, 0, 0.45);
+  background: rgba(255, 237, 224, 0.45);
+  animation: dynamicWave 2.4s infinite cubic-bezier(0.215, 0.61, 0.355, 1);
+  pointer-events: none;
+}
+
+.voice-wave-1 {
+  width: 90px;
+  height: 90px;
+  animation-delay: 0s;
+}
+
+.voice-wave-2 {
+  width: 90px;
+  height: 90px;
+  animation-delay: 0.8s;
+}
+
+.voice-wave-3 {
+  width: 90px;
+  height: 90px;
+  animation-delay: 1.6s;
+}
+
+.mic-pulse-btn {
+  animation: micPulse 2.4s infinite ease-in-out;
+}
+
 @keyframes ripple {
   0% {
     transform: scale(1);
