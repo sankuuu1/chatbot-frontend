@@ -1,26 +1,64 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Mic, BookOpen, Tractor, Heart, HelpCircle, Home, MessageSquare, Settings } from 'lucide-react';
 import bandhuLogo from '../assets/Gemini_Generated_Image_za4cfxza4cfxza4c-removebg-preview.png';
 
 const HomeDashboard = () => {
     const navigate = useNavigate();
+    const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+    const [userName, setUserName] = useState('संतोष जाधव');
+
+    useEffect(() => {
+        fetch(`${API_URL}/api/settings`)
+            .then(res => res.json())
+            .then(data => {
+                if (data && data.name) setUserName(data.name);
+            })
+            .catch(err => console.log('Could not fetch settings:', err));
+    }, [API_URL]);
+
+    // Get first character or initial syllable
+    const getInitial = (name) => {
+        if (!name) return 'सं';
+        const trimmed = name.trim();
+        return trimmed.length > 1 ? trimmed.slice(0, 2) : trimmed;
+    };
 
     return (
         <div style={{ backgroundColor: '#FFFBF2', minHeight: '100vh', display: 'flex', flexDirection: 'column', position: 'relative' }}>
             {/* Header */}
-            <div style={{ padding: '10px 20px 0', display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '0px' }}>
-                <div style={{ display: 'flex', alignItems: 'flex-start' }}>
+            <div style={{ padding: '16px 16px 5px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <div style={{ display: 'flex', alignItems: 'center' }}>
                     <img
                         src={bandhuLogo}
                         alt="Bandhu"
-                        style={{ height: '80px', width: 'auto', objectFit: 'contain', transform: 'scale(1.3)', transformOrigin: 'top left' }}
+                        style={{ height: '55px', width: 'auto', objectFit: 'contain' }}
                     />
                 </div>
-                <div style={{ display: 'flex', alignItems: 'center', background: 'white', padding: '5px 10px', borderRadius: '20px', border: '1px solid #ddd' }}>
-                    <span style={{ color: 'white', background: '#d35400', padding: '2px 8px', borderRadius: '10px', fontSize: '12px', marginRight: '5px' }}>मराठी</span>
-                    <span style={{ fontSize: '12px', color: '#888' }}>Eng</span>
-                </div>
+                
+                {/* Profile Circle Avatar Button on Extreme Right */}
+                <button
+                    onClick={() => navigate('/settings')}
+                    title={`प्रोफाइल: ${userName}`}
+                    style={{
+                        width: '46px',
+                        height: '46px',
+                        borderRadius: '50%',
+                        background: '#D35400',
+                        border: '2px solid white',
+                        boxShadow: '0 3px 10px rgba(211, 84, 0, 0.25)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        color: 'white',
+                        fontWeight: '800',
+                        fontSize: '17px',
+                        cursor: 'pointer',
+                        flexShrink: 0
+                    }}
+                >
+                    {getInitial(userName)}
+                </button>
             </div>
 
             {/* Main Greeting & Mic */}
