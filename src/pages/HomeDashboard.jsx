@@ -58,7 +58,7 @@ const HomeDashboard = () => {
 
             {/* --- TOP HEADER --- */}
             <div style={{
-                padding: '16px 20px 10px',
+                padding: '18px 20px 10px',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'space-between'
@@ -67,7 +67,11 @@ const HomeDashboard = () => {
                     <img
                         src={bandhuLogo}
                         alt="Bandhu"
-                        style={{ height: '42px', width: 'auto', objectFit: 'contain' }}
+                        style={{
+                            width: '48px',
+                            height: 'auto',
+                            objectFit: 'contain'
+                        }}
                     />
                 </div>
 
