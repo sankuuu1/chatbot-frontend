@@ -1,6 +1,6 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Mic, BookOpen, Tractor, Heart, HelpCircle, Home, User, Settings, Clock } from 'lucide-react';
+import { Mic, BookOpen, Tractor, Heart, HelpCircle, Home, MessageSquare, Settings } from 'lucide-react';
 import bandhuLogo from '../assets/Gemini_Generated_Image_za4cfxza4cfxza4c-removebg-preview.png';
 
 const HomeDashboard = () => {
@@ -53,7 +53,6 @@ const HomeDashboard = () => {
                         }}>
                         <Mic size={40} />
                     </button>
-                    {/* Circle Rings SVG BG - simulated with divs above */}
                 </div>
             </div>
 
@@ -101,7 +100,6 @@ const HomeDashboard = () => {
                 </p>
             </div>
 
-
             {/* Bottom Nav */}
             <div style={{
                 position: 'fixed',
@@ -113,15 +111,16 @@ const HomeDashboard = () => {
                 background: 'white',
                 display: 'flex',
                 justifyContent: 'space-around',
-                padding: '15px',
+                padding: '12px 15px',
                 borderTop: '1px solid #eee',
-                boxShadow: '0 -2px 10px rgba(0,0,0,0.05)'
+                boxShadow: '0 -2px 10px rgba(0,0,0,0.05)',
+                zIndex: 30
             }}>
-                < NavItem icon={< Home size={24} color="#d35400" />} label="मुख्य" active />
-                <NavItem icon={<Settings size={24} color="#999" />} label="सेटिंग्ज" />
-                <NavItem icon={<User size={24} color="#999" />} label="प्रोफाइल" />
+                <NavItem icon={<Home size={22} color="#d35400" />} label="मुख्य" active onClick={() => navigate('/home')} />
+                <NavItem icon={<MessageSquare size={22} color="#999" />} label="संभाषण" onClick={() => navigate('/chat')} />
+                <NavItem icon={<Settings size={22} color="#999" />} label="सेटिंग्ज" onClick={() => navigate('/settings')} />
             </div>
-        </div >
+        </div>
     );
 };
 
@@ -147,11 +146,22 @@ const MenuCard = ({ icon, title, subtitle, onClick }) => (
     </div>
 );
 
-const NavItem = ({ icon, label, active }) => (
-    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', cursor: 'pointer' }}>
-        {icon}
-        <span style={{ fontSize: '10px', marginTop: '4px', color: active ? '#d35400' : '#999', fontWeight: active ? 'bold' : 'normal' }}>{label}</span>
-    </div>
+const NavItem = ({ icon, label, active, onClick }) => (
+    <button
+        onClick={onClick}
+        style={{
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            background: active ? '#FFF4E6' : 'transparent',
+            border: 'none',
+            padding: '6px 16px',
+            borderRadius: '18px',
+            cursor: 'pointer'
+        }}>
+        {React.cloneElement(icon, { color: active ? '#d35400' : '#999' })}
+        <span style={{ fontSize: '11px', marginTop: '3px', color: active ? '#d35400' : '#999', fontWeight: active ? 'bold' : 'normal' }}>{label}</span>
+    </button>
 );
 
 export default HomeDashboard;
