@@ -120,7 +120,7 @@ const SettingsPage = () => {
         window.speechSynthesis.cancel(); // Stop any existing speech
         setIsPlayingTest(true);
 
-        const sampleText = "नमस्कार! मी सुनिता ताई, तुमची वैयक्तिक सहाय्यक. मी तुम्हाला मदत करण्यासाठी तयार आहे.";
+        const sampleText = "नमस्कार! मी बंधू, तुमचा वैयक्तिक सहाय्यक. मी तुम्हाला मदत करण्यासाठी तयार आहे.";
         const utterance = new SpeechSynthesisUtterance(sampleText);
         utterance.lang = 'mr-IN';
         utterance.rate = parseFloat(settings.speech_speed) || 1.0;

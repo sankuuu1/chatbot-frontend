@@ -25,7 +25,7 @@ const ChatInterface = () => {
 
     // Initial Greeting based on Category
     useEffect(() => {
-        let greeting = "नमस्कार, सुनिता ताई! मी तुम्हाला कशी मदत करू शकते?";
+        let greeting = "नमस्कार! मी बंधू, तुम्हाला कशी मदत करू शकतो?";
         if (category === 'education') greeting = "नमस्कार! शिक्षणाबद्दल काय जाणून घ्यायचे आहे?";
         if (category === 'farming') greeting = "नमस्कार! शेतीविषयक काय समस्या आहे?";
 
@@ -149,7 +149,7 @@ const ChatInterface = () => {
             <div style={{ padding: '15px', background: '#e67e22', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                     <div style={{ width: '35px', height: '35px', borderRadius: '50%', background: '#ddd', overflow: 'hidden' }}>
-                        <img src="https://ui-avatars.com/api/?name=Sunita+Tai&background=random" alt="Profile" style={{ width: '100%', height: '100%' }} />
+                        <img src="https://ui-avatars.com/api/?name=Bandhu&background=random" alt="Bandhu Profile" style={{ width: '100%', height: '100%' }} />
                     </div>
                     <div>
                         <p style={{ fontSize: '10px', opacity: 0.9 }}>
@@ -157,7 +157,7 @@ const ChatInterface = () => {
                                 category === 'farming' ? 'तुमचा कृषी मित्र' :
                                     category === 'health' ? 'तुमचा आरोग्य सल्लागार' : 'तुमचा सहाय्यक'}
                         </p>
-                        <h3 style={{ fontSize: '16px', fontWeight: 'bold' }}>नमस्कार, सुनिता ताई 🙏</h3>
+                        <h3 style={{ fontSize: '16px', fontWeight: 'bold' }}>बंधू 🙏</h3>
                         {category !== 'general' && (
                             <span style={{ fontSize: '10px', background: 'rgba(255,255,255,0.2)', padding: '2px 8px', borderRadius: '10px' }}>
                                 {category === 'education' ? 'शिक्षण' :
@@ -209,7 +209,7 @@ const ChatInterface = () => {
                         gap: '8px'
                     }}>
                         <span style={{ fontSize: '13px', color: '#666', fontWeight: '600' }}>
-                            सुनिता ताई टाईप करत आहेत
+                            बंधू टाईप करत आहेत
                         </span>
                         <div style={{ display: 'flex', gap: '3px', alignItems: 'center' }}>
                             <div className="typing-dot"></div>
