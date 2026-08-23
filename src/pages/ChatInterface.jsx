@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { X, Mic, Camera, ChevronRight, Info, ChevronDown } from 'lucide-react';
 import RichResponseCard from '../components/RichResponseCard';
@@ -13,6 +13,15 @@ const ChatInterface = () => {
     const [history, setHistory] = useState([]);
     const [viewState, setViewState] = useState('IDLE'); // IDLE, LISTENING, THINKING, RESPONSE
     const [richData, setRichData] = useState(null);
+    const messagesEndRef = useRef(null);
+
+    const scrollToBottom = () => {
+        messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    };
+
+    useEffect(() => {
+        scrollToBottom();
+    }, [history, viewState, richData]);
 
     // Initial Greeting based on Category
     useEffect(() => {
@@ -44,20 +53,16 @@ const ChatInterface = () => {
             });
             const data = await response.json();
 
-            // Wait a bit to show thinking animation (User Experience)
-            setTimeout(() => {
-                const aiMsg = { sender: 'ai', text: data.response };
-                setHistory(prev => [...prev, aiMsg]);
-                if (data.rich_data) {
-                    setRichData(data.rich_data);
-                }
-                setViewState('IDLE'); // Back to IDLE to allow more interaction
-            }, 1500);
-
+            const aiMsg = { sender: 'ai', text: data.response };
+            setHistory(prev => [...prev, aiMsg]);
+            if (data.rich_data) {
+                setRichData(data.rich_data);
+            }
         } catch (error) {
             console.error(error);
-            setViewState('IDLE');
             setHistory(prev => [...prev, { sender: 'ai', text: `⚠️ एरर: ${error.message}. (Backend not connected?)` }]);
+        } finally {
+            setViewState('IDLE');
         }
     };
 
@@ -98,13 +103,9 @@ const ChatInterface = () => {
 
         recognition.onerror = (event) => {
             console.error("Speech recognition error", event.error);
-            // Don't auto-stop on error, try to keep going or handle gracefully
         };
 
         recognition.onend = () => {
-            // If user didn't manually stop, we might want to restart?
-            // For now, let's assume 'stop' button ends it.
-            // console.log("Recognition ended");
         };
 
         recognition.start();
@@ -143,17 +144,6 @@ const ChatInterface = () => {
                 </div>
             )}
 
-            {/* --- THINKING OVERLAY --- */}
-            {viewState === 'THINKING' && (
-                <div style={{ position: 'fixed', inset: 0, background: '#FFFBF2', zIndex: 90, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
-                    {/* Sparkle/Spin Loader */}
-                    <div style={{ width: '80px', height: '80px', border: '4px solid #FFE0B2', borderTop: '4px solid #e67e22', borderRadius: '50%', animation: 'spin 1s linear infinite', marginBottom: '20px' }}></div>
-                    <p style={{ fontSize: '18px', color: '#555', fontWeight: 'bold' }}>
-                        तुमचे उत्तर शोधत आहे...
-                    </p>
-                </div>
-            )}
-
 
             {/* --- MAIN HEADER --- */}
             <div style={{ padding: '15px', background: '#e67e22', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -184,7 +174,7 @@ const ChatInterface = () => {
             </div>
 
             {/* --- CONTENT AREA --- */}
-            <div style={{ padding: '20px', paddingBottom: '100px', flex: 1, overflowY: 'auto' }}>
+            <div style={{ padding: '20px', paddingBottom: '100px', flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column' }}>
 
                 {/* Chat History */}
                 {history.map((msg, idx) => (
@@ -204,6 +194,31 @@ const ChatInterface = () => {
                     </div>
                 ))}
 
+                {/* IN-CHAT WHATSAPP-STYLE TYPING INDICATOR BUBBLE */}
+                {viewState === 'THINKING' && (
+                    <div style={{
+                        alignSelf: 'flex-start',
+                        background: 'white',
+                        padding: '12px 18px',
+                        borderRadius: '16px',
+                        borderBottomLeftRadius: '4px',
+                        marginBottom: '10px',
+                        boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '8px'
+                    }}>
+                        <span style={{ fontSize: '13px', color: '#666', fontWeight: '600' }}>
+                            सुनिता ताई टाईप करत आहेत
+                        </span>
+                        <div style={{ display: 'flex', gap: '3px', alignItems: 'center' }}>
+                            <div className="typing-dot"></div>
+                            <div className="typing-dot"></div>
+                            <div className="typing-dot"></div>
+                        </div>
+                    </div>
+                )}
+
                 {/* RICH CARD DISPLAY */}
                 {richData && (
                     <div className="ani-fade-in">
@@ -218,6 +233,7 @@ const ChatInterface = () => {
                     </div>
                 )}
 
+                <div ref={messagesEndRef} />
             </div>
 
             {/* --- BOTTOM INPUT --- */}
