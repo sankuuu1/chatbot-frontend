@@ -317,7 +317,7 @@ const ChatInterface = () => {
             {/* --- CONTENT / CHAT STREAM AREA --- */}
             <div style={{
                 padding: '20px',
-                paddingBottom: '160px',
+                paddingBottom: '110px',
                 flex: 1,
                 overflowY: 'auto',
                 display: 'flex',
@@ -502,19 +502,6 @@ const ChatInterface = () => {
                         </button>
                     )}
                 </div>
-
-                {/* Bottom Navigation */}
-                <div style={{
-                    display: 'flex',
-                    justify: 'space-around',
-                    padding: '8px 15px 10px',
-                    borderTop: '1px solid #F1F5F9',
-                    background: 'white'
-                }}>
-                    <NavItem icon={<Home size={22} />} label="मुख्य" onClick={() => navigate('/home')} />
-                    <NavItem icon={<Info size={22} />} label="आजची माहिती" onClick={() => navigate('/info')} />
-                    <NavItem icon={<Settings size={22} />} label="सेटिंग्ज" onClick={() => navigate('/settings')} />
-                </div>
             </div>
 
         </div>
@@ -534,26 +521,6 @@ const SuggestionPill = ({ text, onClick }) => (
         cursor: 'pointer'
     }}>
         {text}
-    </button>
-);
-
-const NavItem = ({ icon, label, active, onClick }) => (
-    <button
-        onClick={onClick}
-        style={{
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            background: 'transparent',
-            border: 'none',
-            padding: '2px 16px',
-            cursor: 'pointer'
-        }}
-    >
-        {React.cloneElement(icon, { color: active ? '#E65100' : '#94A3B8', strokeWidth: 2 })}
-        <span style={{ fontSize: '10px', marginTop: '2px', color: active ? '#E65100' : '#64748B', fontWeight: active ? '700' : '500' }}>
-            {label}
-        </span>
     </button>
 );
 
