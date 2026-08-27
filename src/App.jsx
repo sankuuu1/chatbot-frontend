@@ -4,6 +4,7 @@ import LoginFlow from './pages/LoginFlow';
 import HomeDashboard from './pages/HomeDashboard';
 import ChatInterface from './pages/ChatInterface';
 import SettingsPage from './pages/SettingsPage';
+import DailyInfoPage from './pages/DailyInfoPage';
 import './index.css';
 
 function App() {
@@ -17,6 +18,7 @@ function App() {
           <Route path="/success" element={<LoginFlow step="success" />} />
           <Route path="/home" element={<HomeDashboard />} />
           <Route path="/chat" element={<ChatInterface />} />
+          <Route path="/info" element={<DailyInfoPage />} />
           <Route path="/settings" element={<SettingsPage />} />
         </Routes>
       </Router>

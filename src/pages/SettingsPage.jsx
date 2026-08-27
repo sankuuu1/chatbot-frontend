@@ -559,8 +559,8 @@ const SettingsPage = () => {
                 boxShadow: '0 -4px 15px rgba(0,0,0,0.04)',
                 zIndex: 30
             }}>
-                <NavItem icon={<Home size={22} color="#9CA3AF" />} label="मुख्य" onClick={() => navigate('/home')} />
-                <NavItem icon={<MessageSquare size={22} color="#9CA3AF" />} label="संभाषण" onClick={() => navigate('/chat')} />
+                <NavItem icon={<MessageSquare size={22} color="#9CA3AF" />} label="माझे प्रश्न" onClick={() => navigate('/chat')} />
+                <NavItem icon={<Info size={22} color="#9CA3AF" />} label="आजची माहिती" onClick={() => navigate('/info')} />
                 <NavItem icon={<Settings size={22} color="#D35400" />} label="सेटिंग्ज" active onClick={() => navigate('/settings')} />
             </div>
 

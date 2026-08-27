@@ -460,15 +460,14 @@ const HomeDashboard = () => {
                 zIndex: 30
             }}>
                 <NavItem
-                    icon={<Home size={22} />}
-                    label="मुख्य"
-                    active
-                    onClick={() => navigate('/home')}
-                />
-                <NavItem
                     icon={<MessageSquare size={22} />}
                     label="माझे प्रश्न"
                     onClick={() => navigate('/chat')}
+                />
+                <NavItem
+                    icon={<Info size={22} />}
+                    label="आजची माहिती"
+                    onClick={() => navigate('/info')}
                 />
                 <NavItem
                     icon={<Settings size={22} />}
