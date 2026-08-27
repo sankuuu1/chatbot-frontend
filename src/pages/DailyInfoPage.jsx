@@ -8,6 +8,7 @@ import {
     Info,
     Settings,
     Home,
+    ArrowLeft,
     Droplets,
     Sprout,
     Sun,
@@ -136,15 +137,35 @@ const DailyInfoPage = () => {
         }}>
 
             {/* --- TOP HEADER --- */}
-            <div style={{ padding: '20px 20px 10px', display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
-                <div>
-                    <h1 style={{ fontSize: '28px', fontWeight: '900', color: '#111827', margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        आजची <span style={{ color: '#E65100' }}>माहिती</span>
-                        <span style={{ fontSize: '24px' }}>☀️</span>
-                    </h1>
-                    <p style={{ fontSize: '13px', color: '#6B7280', marginTop: '4px', fontWeight: '500' }}>
-                        महत्त्वाची माहिती, तुमच्यासाठी
-                    </p>
+            <div style={{ padding: '20px 20px 10px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                    <button
+                        onClick={() => navigate('/home')}
+                        style={{
+                            background: 'white',
+                            border: '1px solid #E5E7EB',
+                            borderRadius: '50%',
+                            width: '36px',
+                            height: '36px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            cursor: 'pointer',
+                            color: '#374151',
+                            boxShadow: '0 2px 6px rgba(0,0,0,0.03)'
+                        }}
+                    >
+                        <ArrowLeft size={20} />
+                    </button>
+                    <div>
+                        <h1 style={{ fontSize: '24px', fontWeight: '900', color: '#111827', margin: 0, display: 'flex', alignItems: 'center', gap: '6px' }}>
+                            आजची <span style={{ color: '#E65100' }}>माहिती</span>
+                            <span style={{ fontSize: '20px' }}>☀️</span>
+                        </h1>
+                        <p style={{ fontSize: '12px', color: '#6B7280', marginTop: '2px', fontWeight: '500', margin: 0 }}>
+                            महत्त्वाची माहिती, तुमच्यासाठी
+                        </p>
+                    </div>
                 </div>
 
                 {/* Location Pill */}
@@ -476,9 +497,9 @@ const DailyInfoPage = () => {
                 zIndex: 30
             }}>
                 <NavItem
-                    icon={<MessageSquare size={22} />}
-                    label="माझे प्रश्न"
-                    onClick={() => navigate('/chat')}
+                    icon={<Home size={22} />}
+                    label="मुख्य"
+                    onClick={() => navigate('/home')}
                 />
                 <NavItem
                     icon={<Info size={22} />}

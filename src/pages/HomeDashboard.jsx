@@ -461,9 +461,10 @@ const HomeDashboard = () => {
                 zIndex: 30
             }}>
                 <NavItem
-                    icon={<MessageSquare size={22} />}
-                    label="माझे प्रश्न"
-                    onClick={() => navigate('/chat')}
+                    icon={<Home size={22} />}
+                    label="मुख्य"
+                    active
+                    onClick={() => navigate('/home')}
                 />
                 <NavItem
                     icon={<Info size={22} />}
