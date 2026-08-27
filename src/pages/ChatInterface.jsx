@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { X, Mic, Camera, ChevronRight, Info, ChevronDown } from 'lucide-react';
+import { X, Mic, Camera, ChevronRight, Info, Settings, Home, MessageSquare, ArrowLeft, Volume2 } from 'lucide-react';
 import RichResponseCard from '../components/RichResponseCard';
 
 const ChatInterface = () => {
@@ -13,6 +13,8 @@ const ChatInterface = () => {
     const [history, setHistory] = useState([]);
     const [viewState, setViewState] = useState('IDLE'); // IDLE, LISTENING, THINKING, RESPONSE
     const [richData, setRichData] = useState(null);
+    const [recognitionRef, setRecognitionRef] = useState(null);
+    const [transcriptAccumulated, setTranscriptAccumulated] = useState('');
     const messagesEndRef = useRef(null);
 
     const scrollToBottom = () => {
@@ -23,33 +25,30 @@ const ChatInterface = () => {
         scrollToBottom();
     }, [history, viewState, richData]);
 
-    // Initial Greeting based on Category
+    // Handle autoListen or query from navigation state
     useEffect(() => {
-        let greeting = "नमस्कार! मी बंधू, तुम्हाला कशी मदत करू शकतो?";
-        if (category === 'education') greeting = "नमस्कार! शिक्षणाबद्दल काय जाणून घ्यायचे आहे?";
-        if (category === 'farming') greeting = "नमस्कार! शेतीविषयक काय समस्या आहे?";
-
-        // Only add if history is empty
-        if (history.length === 0) {
-            // We can uncomment this if we want an initial AI message
-            // setHistory([{sender: 'ai', text: greeting}]);
+        if (location.state?.autoListen) {
+            startListening();
+        } else if (location.state?.query) {
+            handleSend(location.state.query);
         }
-    }, [category]);
+    }, [location.state]);
 
     const handleSend = async (text = input) => {
-        if (!text.trim()) return;
+        if (!text || !text.trim()) return;
 
-        const userMsg = { sender: 'user', text: text };
+        const userText = text.trim();
+        const userMsg = { sender: 'user', text: userText };
         setHistory(prev => [...prev, userMsg]);
         setInput('');
         setViewState('THINKING');
-        setRichData(null); // Clear previous rich data
+        setRichData(null);
 
         try {
             const response = await fetch(`${API_URL}/chat`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ message: text, category: category })
+                body: JSON.stringify({ message: userText, category: category })
             });
             const data = await response.json();
 
@@ -66,19 +65,17 @@ const ChatInterface = () => {
         }
     };
 
-    const [recognitionRef, setRecognitionRef] = useState(null);
-    const [transcriptAccumulated, setTranscriptAccumulated] = useState('');
-
     const startListening = () => {
-        if (!('webkitSpeechRecognition' in window)) {
-            alert("Sorry, your browser doesn't support voice recognition. Try Chrome.");
+        if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+            alert("तुमच्या ब्राऊजरमध्ये आवाजाची सुविधा उपलब्ध नाही. कृपया क्रोम ब्राऊजर वापरा.");
             return;
         }
 
-        const recognition = new window.webkitSpeechRecognition();
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        const recognition = new SpeechRecognition();
         recognition.lang = 'mr-IN'; // Marathi
-        recognition.continuous = true; // Enable continuous listening
-        recognition.interimResults = true; // Show interim results if needed
+        recognition.continuous = true;
+        recognition.interimResults = true;
 
         setViewState('LISTENING');
         setTranscriptAccumulated('');
@@ -90,14 +87,17 @@ const ChatInterface = () => {
 
         recognition.onresult = (event) => {
             let finalTranscript = '';
+            let interimTranscript = '';
             for (let i = event.resultIndex; i < event.results.length; ++i) {
                 if (event.results[i].isFinal) {
                     finalTranscript += event.results[i][0].transcript;
+                } else {
+                    interimTranscript += event.results[i][0].transcript;
                 }
             }
-            if (finalTranscript) {
-                setTranscriptAccumulated(prev => prev + ' ' + finalTranscript);
-                console.log("Accumulated:", finalTranscript);
+            const currentText = finalTranscript || interimTranscript;
+            if (currentText) {
+                setTranscriptAccumulated(currentText);
             }
         };
 
@@ -108,87 +108,263 @@ const ChatInterface = () => {
         recognition.onend = () => {
         };
 
-        recognition.start();
+        try {
+            recognition.start();
+        } catch (e) {
+            console.error("Error starting recognition:", e);
+        }
     };
 
     const stopListening = () => {
         if (recognitionRef) {
-            recognitionRef.stop();
+            try {
+                recognitionRef.stop();
+            } catch (e) {
+                console.error(e);
+            }
             setRecognitionRef(null);
         }
         setViewState('IDLE');
-        if (transcriptAccumulated.trim()) {
+        if (transcriptAccumulated && transcriptAccumulated.trim()) {
             handleSend(transcriptAccumulated.trim());
         }
     };
 
     return (
-        <div style={{ backgroundColor: '#FFFBF2', minHeight: '100vh', display: 'flex', flexDirection: 'column', position: 'relative' }}>
+        <div style={{
+            backgroundColor: '#FFFDF9',
+            minHeight: '100vh',
+            display: 'flex',
+            flexDirection: 'column',
+            position: 'relative',
+            fontFamily: "'Noto Sans Devanagari', 'Inter', sans-serif"
+        }}>
 
-            {/* --- LISTENING OVERLAY --- */}
+            {/* --- ANIMATED VOICE LISTENING OVERLAY --- */}
             {viewState === 'LISTENING' && (
-                <div style={{ position: 'fixed', inset: 0, background: 'rgba(255,251,242,0.95)', zIndex: 100, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
-                    <p style={{ fontSize: '24px', fontWeight: 'bold', color: '#e67e22', marginBottom: '20px' }}>
-                        "{category === 'education' ? 'त्रिकोणाचे क्षेत्रफळ कसे...' : 'बोलत रहा, आम्ही ऐकत आहोत'}"
-                    </p>
-                    {/* Animated Waveform Placeholder */}
-                    <div style={{ display: 'flex', gap: '5px', height: '60px', alignItems: 'center' }}>
-                        {[1, 2, 3, 4, 5].map(i => (
-                            <div key={i} style={{ width: '8px', background: '#e67e22', borderRadius: '4px', animation: `wave 1s infinite ${i * 0.1}s` }} className="wave-bar"></div>
-                        ))}
+                <div style={{
+                    position: 'fixed',
+                    inset: 0,
+                    background: 'linear-gradient(180deg, #FFF8F0 0%, #FFFDF9 100%)',
+                    zIndex: 100,
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    padding: '40px 20px 60px'
+                }}>
+                    {/* Header */}
+                    <div style={{ textAlign: 'center', marginTop: '20px' }}>
+                        <span style={{
+                            background: '#FFE0B2',
+                            color: '#E65100',
+                            fontSize: '12px',
+                            fontWeight: '800',
+                            padding: '6px 16px',
+                            borderRadius: '20px',
+                            display: 'inline-block',
+                            marginBottom: '12px'
+                        }}>
+                            🎙️ मायक्रोफोन सुरू आहे
+                        </span>
+                        <h2 style={{ fontSize: '26px', fontWeight: '900', color: '#111827', margin: 0 }}>
+                            बंधू ऐकत आहेत...
+                        </h2>
+                        <p style={{ fontSize: '14px', color: '#6B7280', marginTop: '6px', fontWeight: '500' }}>
+                            तुमचा प्रश्न स्पष्टपणे बोला
+                        </p>
                     </div>
-                    <div style={{ padding: '0 20px', textAlign: 'center', marginBottom: '20px', color: '#666' }}>
-                        {transcriptAccumulated || "ऐकत आहे..."}
+
+                    {/* Center Animated Mic Pulse */}
+                    <div style={{
+                        position: 'relative',
+                        width: '160px',
+                        height: '160px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        margin: '20px 0'
+                    }}>
+                        <div className="voice-wave-ring voice-wave-1"></div>
+                        <div className="voice-wave-ring voice-wave-2"></div>
+                        <div className="voice-wave-ring voice-wave-3"></div>
+
+                        <div style={{
+                            width: '100px',
+                            height: '100px',
+                            borderRadius: '50%',
+                            background: 'linear-gradient(135deg, #FF6F00 0%, #E65100 100%)',
+                            border: '5px solid white',
+                            boxShadow: '0 12px 30px rgba(230,81,0,0.4)',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            color: 'white',
+                            zIndex: 10
+                        }}>
+                            <Mic size={48} strokeWidth={2.2} />
+                        </div>
                     </div>
-                    <button onClick={stopListening} style={{ marginTop: '20px', background: '#e67e22', color: 'white', padding: '15px 40px', borderRadius: '30px', border: 'none', fontSize: '18px', cursor: 'pointer' }}>बोलणे पूर्ण झाले (Done)</button>
+
+                    {/* Real-time Equalizer Waveform & Live Transcript */}
+                    <div style={{ width: '100%', maxWidth: '340px', textAlign: 'center' }}>
+                        <div style={{
+                            display: 'flex',
+                            gap: '6px',
+                            height: '40px',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            marginBottom: '16px'
+                        }}>
+                            {[1, 2, 3, 4, 5, 6, 7].map(i => (
+                                <div key={i} style={{
+                                    width: '6px',
+                                    background: '#E65100',
+                                    borderRadius: '3px',
+                                    animation: `wave 1s infinite ${i * 0.12}s`
+                                }}></div>
+                            ))}
+                        </div>
+
+                        {/* Transcript Preview Box */}
+                        <div style={{
+                            background: 'white',
+                            border: '1px solid #FFE0B2',
+                            borderRadius: '18px',
+                            padding: '16px 20px',
+                            minHeight: '70px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            boxShadow: '0 4px 15px rgba(230,81,0,0.06)'
+                        }}>
+                            <p style={{
+                                fontSize: '16px',
+                                fontWeight: '700',
+                                color: transcriptAccumulated ? '#111827' : '#9CA3AF',
+                                margin: 0,
+                                lineHeight: '1.4'
+                            }}>
+                                {transcriptAccumulated || "बोलत राहा..."}
+                            </p>
+                        </div>
+                    </div>
+
+                    {/* Done Speaking Action Button */}
+                    <button
+                        onClick={stopListening}
+                        style={{
+                            background: '#E65100',
+                            color: 'white',
+                            border: 'none',
+                            borderRadius: '30px',
+                            padding: '16px 48px',
+                            fontSize: '17px',
+                            fontWeight: '800',
+                            cursor: 'pointer',
+                            boxShadow: '0 6px 20px rgba(230,81,0,0.35)',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '10px'
+                        }}
+                    >
+                        <span>बोलणे पूर्ण झाले (Done)</span>
+                        <ChevronRight size={20} />
+                    </button>
                 </div>
             )}
 
 
-            {/* --- MAIN HEADER --- */}
-            <div style={{ padding: '15px', background: '#e67e22', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                    <div style={{ width: '35px', height: '35px', borderRadius: '50%', background: '#ddd', overflow: 'hidden' }}>
-                        <img src="https://ui-avatars.com/api/?name=Bandhu&background=random" alt="Bandhu Profile" style={{ width: '100%', height: '100%' }} />
+            {/* --- MAIN CHAT HEADER --- */}
+            <div style={{
+                padding: '15px 20px',
+                background: '#E65100',
+                color: 'white',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                boxShadow: '0 2px 10px rgba(230,81,0,0.2)'
+            }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                    <button
+                        onClick={() => navigate('/home')}
+                        style={{ background: 'rgba(255,255,255,0.2)', border: 'none', borderRadius: '50%', width: '32px', height: '32px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', cursor: 'pointer' }}
+                    >
+                        <ArrowLeft size={18} />
+                    </button>
+                    <div style={{ width: '36px', height: '36px', borderRadius: '50%', background: 'white', padding: '2px', overflow: 'hidden' }}>
+                        <img src="https://ui-avatars.com/api/?name=Bandhu&background=random" alt="Bandhu Profile" style={{ width: '100%', height: '100%', borderRadius: '50%' }} />
                     </div>
                     <div>
-                        <p style={{ fontSize: '10px', opacity: 0.9 }}>
-                            {category === 'education' ? 'तुमचे वैयक्तिक शिक्षक' :
-                                category === 'farming' ? 'तुमचा कृषी मित्र' :
-                                    category === 'health' ? 'तुमचा आरोग्य सल्लागार' : 'तुमचा सहाय्यक'}
+                        <h3 style={{ fontSize: '16px', fontWeight: '800', margin: 0, lineHeight: '1.2' }}>बंधू (Bandhu) 🙏</h3>
+                        <p style={{ fontSize: '11px', opacity: 0.9, margin: 0 }}>
+                            {category === 'education' ? 'वैयक्तिक शिक्षक' :
+                                category === 'farming' ? 'कृषी मित्र' :
+                                    category === 'health' ? 'आरोग्य सल्लागार' : 'नेहमी सोबत'}
                         </p>
-                        <h3 style={{ fontSize: '16px', fontWeight: 'bold' }}>बंधू 🙏</h3>
-                        {category !== 'general' && (
-                            <span style={{ fontSize: '10px', background: 'rgba(255,255,255,0.2)', padding: '2px 8px', borderRadius: '10px' }}>
-                                {category === 'education' ? 'शिक्षण' :
-                                    category === 'farming' ? 'शेती' :
-                                        category === 'health' ? 'आरोग्य' :
-                                            category === 'help' ? 'मदत' : ''}
-                            </span>
-                        )}
                     </div>
                 </div>
-                <button onClick={() => navigate('/home')} style={{ background: 'rgba(255,255,255,0.2)', border: 'none', borderRadius: '50%', width: '32px', height: '32px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white' }}>
-                    <X size={20} />
+
+                <button
+                    onClick={() => navigate('/home')}
+                    style={{ background: 'rgba(255,255,255,0.2)', border: 'none', borderRadius: '50%', width: '32px', height: '32px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', cursor: 'pointer' }}
+                >
+                    <X size={18} />
                 </button>
             </div>
 
-            {/* --- CONTENT AREA --- */}
-            <div style={{ padding: '20px', paddingBottom: '100px', flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column' }}>
 
-                {/* Chat History */}
+            {/* --- CONTENT / CHAT STREAM AREA --- */}
+            <div style={{
+                padding: '20px',
+                paddingBottom: '160px',
+                flex: 1,
+                overflowY: 'auto',
+                display: 'flex',
+                flexDirection: 'column'
+            }}>
+
+                {/* Empty State Welcome */}
+                {history.length === 0 && !richData && (
+                    <div style={{ textAlign: 'center', marginTop: '60px', color: '#6B7280' }}>
+                        <div style={{
+                            width: '64px',
+                            height: '64px',
+                            borderRadius: '50%',
+                            background: '#FFF3E0',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            margin: '0 auto 16px'
+                        }}>
+                            <MessageSquare size={32} color="#E65100" />
+                        </div>
+                        <h3 style={{ fontSize: '18px', fontWeight: '800', color: '#111827', marginBottom: '6px' }}>
+                            नमस्कार! मी बंधू.
+                        </h3>
+                        <p style={{ fontSize: '14px', color: '#6B7280', maxWidth: '280px', margin: '0 auto', lineHeight: '1.4' }}>
+                            खालील प्रश्न निवडा किंवा मायक्रोफोन बटण दाबून बोला.
+                        </p>
+                    </div>
+                )}
+
+                {/* Chat History Stream */}
                 {history.map((msg, idx) => (
                     <div key={idx} style={{
                         alignSelf: msg.sender === 'user' ? 'flex-end' : 'flex-start',
                         background: msg.sender === 'user' ? '#FFE0B2' : 'white',
-                        padding: '12px 16px',
-                        borderRadius: '12px',
-                        marginBottom: '10px',
-                        maxWidth: '90%',
+                        color: '#111827',
+                        padding: '12px 18px',
+                        borderRadius: '18px',
+                        borderBottomRightRadius: msg.sender === 'user' ? '4px' : '18px',
+                        borderBottomLeftRadius: msg.sender === 'user' ? '18px' : '4px',
+                        marginBottom: '12px',
+                        maxWidth: '85%',
                         marginLeft: msg.sender === 'user' ? 'auto' : 0,
-                        boxShadow: '0 2px 5px rgba(0,0,0,0.05)',
+                        boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
                         fontSize: '15px',
-                        lineHeight: '1.5'
+                        lineHeight: '1.5',
+                        fontWeight: '500'
                     }}>
                         {msg.text}
                     </div>
@@ -200,9 +376,9 @@ const ChatInterface = () => {
                         alignSelf: 'flex-start',
                         background: 'white',
                         padding: '12px 18px',
-                        borderRadius: '16px',
+                        borderRadius: '18px',
                         borderBottomLeftRadius: '4px',
-                        marginBottom: '10px',
+                        marginBottom: '12px',
                         boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
                         display: 'flex',
                         alignItems: 'center',
@@ -211,7 +387,7 @@ const ChatInterface = () => {
                         <span style={{ fontSize: '13px', color: '#666', fontWeight: '600' }}>
                             बंधू टाईप करत आहेत
                         </span>
-                        <div style={{ display: 'flex', gap: '3px', alignItems: 'center' }}>
+                        <div style={{ display: 'flex', gap: '4px', alignItems: 'center' }}>
                             <div className="typing-dot"></div>
                             <div className="typing-dot"></div>
                             <div className="typing-dot"></div>
@@ -219,43 +395,71 @@ const ChatInterface = () => {
                     </div>
                 )}
 
-                {/* RICH CARD DISPLAY */}
+                {/* Rich Response Component Display */}
                 {richData && (
-                    <div className="ani-fade-in">
+                    <div className="ani-fade-in" style={{ marginBottom: '16px' }}>
                         <RichResponseCard data={richData} />
-                    </div>
-                )}
-
-                {/* Initial Suggestion for empty state */}
-                {history.length === 0 && !richData && (
-                    <div style={{ textAlign: 'center', marginTop: '50px', color: '#888' }}>
-                        <p>विचारा, मी ऐकत आहे...</p>
                     </div>
                 )}
 
                 <div ref={messagesEndRef} />
             </div>
 
-            {/* --- BOTTOM INPUT --- */}
-            <div style={{ position: 'fixed', bottom: 0, left: '50%', transform: 'translateX(-50%)', width: '100%', maxWidth: '420px', background: '#FFFBF2', padding: '15px', paddingBottom: '30px' }}>
-                <div style={{ display: 'flex', gap: '10px', marginBottom: '15px', overflowX: 'auto', paddingBottom: '5px' }}>
-                    <SuggestionPill text="औषधांची नावे?" onClick={() => handleSend("औषधांची नावे?")} />
-                    <SuggestionPill text="हवामान अंदाज?" onClick={() => handleSend("हवामान अंदाज?")} />
-                    <SuggestionPill text="कापसाचा भाव?" onClick={() => handleSend("कापसाचा भाव?")} />
+
+            {/* --- BOTTOM CHAT INPUT BAR & NAVIGATION --- */}
+            <div style={{
+                position: 'fixed',
+                bottom: 0,
+                left: '50%',
+                transform: 'translateX(-50%)',
+                width: '100%',
+                maxWidth: '420px',
+                background: '#FFFDF9',
+                borderTop: '1px solid #F3F4F6',
+                zIndex: 30
+            }}>
+                {/* Suggestion Chips */}
+                <div style={{ display: 'flex', gap: '8px', padding: '10px 16px 6px', overflowX: 'auto' }}>
+                    <SuggestionPill text="आज पाऊस पडेल का?" onClick={() => handleSend("आज पाऊस पडेल का?")} />
+                    <SuggestionPill text="कापसाचा बाजारभाव?" onClick={() => handleSend("कापसाचा बाजारभाव?")} />
+                    <SuggestionPill text="सरकारी योजना?" onClick={() => handleSend("सरकारी योजना?")} />
                 </div>
 
-                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                    <button onClick={startListening} style={{ width: '45px', height: '45px', borderRadius: '50%', background: 'white', border: '1px solid #e67e22', color: '#e67e22', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                        <Mic size={24} />
+                {/* Input Controls */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '6px 16px 10px' }}>
+                    {/* Voice Mic Button */}
+                    <button
+                        onClick={startListening}
+                        style={{
+                            width: '44px',
+                            height: '44px',
+                            borderRadius: '50%',
+                            background: '#FFF3E0',
+                            border: '1px solid #FFE0B2',
+                            color: '#E65100',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            flexShrink: 0,
+                            cursor: 'pointer'
+                        }}
+                    >
+                        <Mic size={22} strokeWidth={2.2} />
                     </button>
-                    {!input && <button style={{ width: '45px', height: '45px', borderRadius: '50%', background: 'white', border: 'none', color: '#555', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                        <Camera size={24} />
-                    </button>}
 
-                    <div style={{ flex: 1, background: 'white', borderRadius: '25px', padding: '12px 20px', border: '1px solid #ddd', display: 'flex', alignItems: 'center' }}>
+                    {/* Text Input Box */}
+                    <div style={{
+                        flex: 1,
+                        background: 'white',
+                        borderRadius: '24px',
+                        padding: '10px 18px',
+                        border: '1px solid #E5E7EB',
+                        display: 'flex',
+                        alignItems: 'center'
+                    }}>
                         <input
                             type="text"
-                            placeholder="इथे लिहा..."
+                            placeholder="इथे प्रश्न लिहा..."
                             value={input}
                             onChange={(e) => setInput(e.target.value)}
                             onKeyDown={(e) => {
@@ -263,18 +467,53 @@ const ChatInterface = () => {
                                     handleSend();
                                 }
                             }}
-                            style={{ width: '100%', border: 'none', outline: 'none', fontSize: '16px' }}
+                            style={{
+                                width: '100%',
+                                border: 'none',
+                                outline: 'none',
+                                fontSize: '15px',
+                                fontFamily: "'Noto Sans Devanagari', 'Inter', sans-serif"
+                            }}
                             disabled={viewState === 'THINKING'}
                         />
                     </div>
-                    {input && (
+
+                    {/* Send Button */}
+                    {input.trim() && (
                         <button
                             onClick={() => handleSend()}
                             disabled={viewState === 'THINKING'}
-                            style={{ width: '45px', height: '45px', borderRadius: '50%', background: '#e67e22', color: 'white', border: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', flexShrink: 0, opacity: viewState === 'THINKING' ? 0.7 : 1 }}>
-                            {viewState === 'THINKING' ? <div style={{ width: '20px', height: '20px', border: '2px solid white', borderRadius: '50%', borderTopColor: 'transparent', animation: 'spin 1s linear infinite' }}></div> : <ChevronRight size={24} />}
+                            style={{
+                                width: '44px',
+                                height: '44px',
+                                borderRadius: '50%',
+                                background: '#E65100',
+                                color: 'white',
+                                border: 'none',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                cursor: 'pointer',
+                                flexShrink: 0,
+                                boxShadow: '0 3px 10px rgba(230,81,0,0.3)'
+                            }}
+                        >
+                            <ChevronRight size={22} />
                         </button>
                     )}
+                </div>
+
+                {/* Bottom Navigation */}
+                <div style={{
+                    display: 'flex',
+                    justify: 'space-around',
+                    padding: '8px 15px 10px',
+                    borderTop: '1px solid #F1F5F9',
+                    background: 'white'
+                }}>
+                    <NavItem icon={<Home size={22} />} label="मुख्य" onClick={() => navigate('/home')} />
+                    <NavItem icon={<Info size={22} />} label="आजची माहिती" onClick={() => navigate('/info')} />
+                    <NavItem icon={<Settings size={22} />} label="सेटिंग्ज" onClick={() => navigate('/settings')} />
                 </div>
             </div>
 
@@ -283,8 +522,38 @@ const ChatInterface = () => {
 };
 
 const SuggestionPill = ({ text, onClick }) => (
-    <button onClick={onClick} style={{ background: 'white', border: '1px solid #eee', padding: '8px 16px', borderRadius: '20px', fontSize: '13px', fontWeight: '600', color: '#444', whiteSpace: 'nowrap', cursor: 'pointer' }}>
+    <button onClick={onClick} style={{
+        background: 'white',
+        border: '1px solid #E5E7EB',
+        padding: '6px 14px',
+        borderRadius: '20px',
+        fontSize: '12px',
+        fontWeight: '600',
+        color: '#4B5563',
+        whiteSpace: 'nowrap',
+        cursor: 'pointer'
+    }}>
         {text}
+    </button>
+);
+
+const NavItem = ({ icon, label, active, onClick }) => (
+    <button
+        onClick={onClick}
+        style={{
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            background: 'transparent',
+            border: 'none',
+            padding: '2px 16px',
+            cursor: 'pointer'
+        }}
+    >
+        {React.cloneElement(icon, { color: active ? '#E65100' : '#94A3B8', strokeWidth: 2 })}
+        <span style={{ fontSize: '10px', marginTop: '2px', color: active ? '#E65100' : '#64748B', fontWeight: active ? '700' : '500' }}>
+            {label}
+        </span>
     </button>
 );
 

@@ -32,8 +32,17 @@ const HomeDashboard = () => {
         }
     };
 
+    const handleInputClick = () => {
+        if (searchInput.trim()) {
+            navigate('/chat', { state: { query: searchInput.trim() } });
+        } else {
+            navigate('/chat');
+        }
+    };
+
     // Camera Upload Trigger
-    const handleCameraClick = () => {
+    const handleCameraClick = (e) => {
+        e.stopPropagation();
         const fileInput = document.createElement('input');
         fileInput.type = 'file';
         fileInput.accept = 'image/*';
@@ -108,15 +117,15 @@ const HomeDashboard = () => {
             </div>
 
             {/* --- EMOJI BADGE ABOVE GREETING --- */}
-            <div style={{ textAlign: 'center', marginTop: '4px' }}>
+            <div style={{ padding: '0 20px', marginTop: '10px', textAlign: 'center' }}>
                 <div style={{
-                    width: '46px',
-                    height: '46px',
-                    borderRadius: '50%',
-                    background: '#FFF3E0',
                     display: 'inline-flex',
                     alignItems: 'center',
                     justifyContent: 'center',
+                    width: '42px',
+                    height: '42px',
+                    borderRadius: '50%',
+                    background: '#FFF3E0',
                     marginBottom: '6px'
                 }}>
                     <span style={{ fontSize: '22px' }}>🙏</span>
@@ -157,7 +166,7 @@ const HomeDashboard = () => {
 
                     <button
                         className="mic-pulse-btn"
-                        onClick={() => navigate('/chat')}
+                        onClick={() => navigate('/chat', { state: { autoListen: true } })}
                         style={{
                             width: '90px',
                             height: '90px',
@@ -184,16 +193,20 @@ const HomeDashboard = () => {
 
             {/* --- INPUT / SEARCH BAR WITH CAMERA & MIC ICONS --- */}
             <div style={{ padding: '0 20px', marginTop: '16px' }}>
-                <div style={{
-                    background: 'white',
-                    borderRadius: '18px',
-                    border: '1px solid #E5E7EB',
-                    padding: '10px 16px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    boxShadow: '0 3px 12px rgba(0,0,0,0.03)'
-                }}>
+                <div
+                    onClick={handleInputClick}
+                    style={{
+                        background: 'white',
+                        borderRadius: '18px',
+                        border: '1px solid #E5E7EB',
+                        padding: '10px 16px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        boxShadow: '0 3px 12px rgba(0,0,0,0.03)',
+                        cursor: 'pointer'
+                    }}
+                >
                     <input
                         type="text"
                         placeholder="तुमचा प्रश्न लिहा..."
@@ -220,7 +233,10 @@ const HomeDashboard = () => {
                         </button>
                         <div style={{ height: '18px', width: '1px', background: '#E5E7EB' }}></div>
                         <button
-                            onClick={() => navigate('/chat')}
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                navigate('/chat', { state: { autoListen: true } });
+                            }}
                             title="आवाजाने बोला"
                             style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#E65100', padding: 0 }}
                         >
