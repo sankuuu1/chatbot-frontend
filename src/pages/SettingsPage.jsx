@@ -10,6 +10,7 @@ import {
     LogOut,
     Home,
     MessageSquare,
+    Info,
     Settings,
     ChevronRight,
     Play,
@@ -18,7 +19,6 @@ import {
     User,
     Zap,
     Phone,
-    Info,
     Shield
 } from 'lucide-react';
 

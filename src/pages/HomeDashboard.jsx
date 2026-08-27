@@ -6,6 +6,7 @@ import {
     BookOpen,
     Home,
     MessageSquare,
+    Info,
     Settings,
     ArrowRight,
     ArrowUp,
