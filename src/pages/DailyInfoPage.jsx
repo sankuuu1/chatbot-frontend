@@ -26,6 +26,7 @@ const DailyInfoPage = () => {
     const [selectedArticle, setSelectedArticle] = useState(null);
     const [loading, setLoading] = useState(true);
     const [isWeatherModalOpen, setIsWeatherModalOpen] = useState(false);
+    const [showFullNewsOnly, setShowFullNewsOnly] = useState(false);
 
     const [infoData, setInfoData] = useState({
         location: "नागपूर, महाराष्ट्र",
@@ -171,30 +172,32 @@ const DailyInfoPage = () => {
                     </div>
                 </div>
 
-                {/* Location Pill */}
+                {/* Compact Minimized Location Pill */}
                 <button style={{
                     background: 'white',
                     border: '1px solid #E5E7EB',
-                    borderRadius: '24px',
-                    padding: '8px 14px',
+                    borderRadius: '16px',
+                    padding: '5px 10px',
                     display: 'flex',
                     alignItems: 'center',
-                    gap: '6px',
-                    fontSize: '13px',
+                    gap: '4px',
+                    fontSize: '11px',
                     fontWeight: '600',
-                    color: '#1F2937',
+                    color: '#374151',
                     cursor: 'pointer',
-                    boxShadow: '0 2px 6px rgba(0,0,0,0.03)'
+                    boxShadow: '0 1px 4px rgba(0,0,0,0.03)',
+                    marginLeft: 'auto'
                 }}>
-                    <MapPin size={15} color="#E65100" />
+                    <MapPin size={12} color="#E65100" />
                     <span>{infoData.location}</span>
-                    <ChevronDown size={16} color="#6B7280" />
+                    <ChevronDown size={13} color="#6B7280" />
                 </button>
             </div>
 
 
             {/* --- WEATHER FEATURE BUTTON (COMPACT & COLLAPSIBLE TRIGGER) --- */}
-            <div style={{ padding: '0 20px', marginTop: '10px' }}>
+            {!showFullNewsOnly && (
+                <div style={{ padding: '0 20px', marginTop: '10px' }}>
                 <div
                     onClick={() => setIsWeatherModalOpen(true)}
                     style={{
@@ -262,6 +265,8 @@ const DailyInfoPage = () => {
                 </div>
             </div>
 
+
+            )}
 
             {/* --- EXPANDABLE WEATHER POP-UP MODAL (COLLAPSIBLE) --- */}
             {isWeatherModalOpen && (
@@ -500,9 +505,24 @@ const DailyInfoPage = () => {
                     <h3 style={{ fontSize: '18px', fontWeight: '800', color: '#111827', margin: 0 }}>
                         महत्त्वाच्या बातम्या
                     </h3>
-                    <button style={{ background: 'none', border: 'none', color: '#E65100', fontSize: '13px', fontWeight: '700', display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer' }}>
-                        <span>सर्व बातम्या</span>
-                        <ChevronRight size={16} />
+                    <button
+                        onClick={() => setShowFullNewsOnly(!showFullNewsOnly)}
+                        style={{
+                            background: showFullNewsOnly ? '#FFF8F0' : 'none',
+                            border: showFullNewsOnly ? '1px solid #FFE0B2' : 'none',
+                            borderRadius: showFullNewsOnly ? '16px' : '0',
+                            padding: showFullNewsOnly ? '6px 12px' : '0',
+                            color: '#E65100',
+                            fontSize: '13px',
+                            fontWeight: '700',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '4px',
+                            cursor: 'pointer'
+                        }}
+                    >
+                        <span>{showFullNewsOnly ? '← हवामान दाखवा' : 'सर्व बातम्या'}</span>
+                        {!showFullNewsOnly && <ChevronRight size={16} />}
                     </button>
                 </div>
 
