@@ -141,30 +141,31 @@ const DailyInfoPage = () => {
         }}>
 
             {/* --- TOP HEADER --- */}
-            <div style={{ padding: '20px 20px 10px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <div style={{ padding: '18px 20px 8px', display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
+                <div style={{ display: 'flex', alignItems: 'flex-start', gap: '12px' }}>
                     <button
                         onClick={() => navigate('/home')}
                         style={{
                             background: 'white',
                             border: '1px solid #E5E7EB',
                             borderRadius: '50%',
-                            width: '36px',
-                            height: '36px',
+                            width: '34px',
+                            height: '34px',
                             display: 'flex',
                             alignItems: 'center',
                             justifyContent: 'center',
                             cursor: 'pointer',
                             color: '#374151',
-                            boxShadow: '0 2px 6px rgba(0,0,0,0.03)'
+                            boxShadow: '0 2px 6px rgba(0,0,0,0.03)',
+                            marginTop: '2px'
                         }}
                     >
-                        <ArrowLeft size={20} />
+                        <ArrowLeft size={18} />
                     </button>
                     <div>
-                        <h1 style={{ fontSize: '24px', fontWeight: '900', color: '#111827', margin: 0, display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <h1 style={{ fontSize: '22px', fontWeight: '900', color: '#111827', margin: 0, display: 'flex', alignItems: 'center', gap: '6px' }}>
                             आजची <span style={{ color: '#E65100' }}>माहिती</span>
-                            <span style={{ fontSize: '20px' }}>☀️</span>
+                            <span style={{ fontSize: '18px' }}>☀️</span>
                         </h1>
                         <p style={{ fontSize: '12px', color: '#6B7280', marginTop: '2px', fontWeight: '500', margin: 0 }}>
                             महत्त्वाची माहिती, तुमच्यासाठी
@@ -172,7 +173,7 @@ const DailyInfoPage = () => {
                     </div>
                 </div>
 
-                {/* Compact Minimized Location Pill */}
+                {/* Compact Minimized Location Pill Top-Right Aligned */}
                 <button style={{
                     background: 'white',
                     border: '1px solid #E5E7EB',
@@ -186,7 +187,7 @@ const DailyInfoPage = () => {
                     color: '#374151',
                     cursor: 'pointer',
                     boxShadow: '0 1px 4px rgba(0,0,0,0.03)',
-                    marginLeft: 'auto'
+                    marginTop: '2px'
                 }}>
                     <MapPin size={12} color="#E65100" />
                     <span>{infoData.location}</span>
