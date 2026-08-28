@@ -55,7 +55,7 @@ const DailyInfoPage = () => {
                 title: "सोयाबीनच्या बाजारभावात वाढ",
                 subtitle: "विदर्भातील बाजारभावात आज बदल",
                 time_ago: "२ तासांपूर्वी",
-                image_url: "https://images.unsplash.com/photo-1599599810694-b5b37304c041?auto=format&fit=crop&w=300&q=80"
+                image_url: "https://images.unsplash.com/photo-1592982537447-7440770cbfc9?auto=format&fit=crop&w=300&q=80"
             },
             {
                 id: "2",
@@ -696,27 +696,20 @@ const NavItem = ({ icon, label, active, onClick }) => (
             position: 'relative'
         }}
     >
-        {active ? (
+        {active && (
             <div style={{
-                width: '42px',
-                height: '42px',
-                borderRadius: '50%',
+                position: 'absolute',
+                top: '-10px',
+                width: '36px',
+                height: '3px',
                 background: '#E65100',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                color: 'white',
-                boxShadow: '0 4px 10px rgba(230,81,0,0.3)',
-                marginTop: '-12px'
-            }}>
-                {React.cloneElement(icon, { color: 'white', size: 20 })}
-            </div>
-        ) : (
-            React.cloneElement(icon, { color: '#94A3B8', strokeWidth: 2 })
+                borderRadius: '2px'
+            }} />
         )}
+        {React.cloneElement(icon, { color: active ? '#E65100' : '#94A3B8', strokeWidth: 2 })}
         <span style={{
             fontSize: '11px',
-            marginTop: active ? '2px' : '4px',
+            marginTop: '4px',
             color: active ? '#E65100' : '#64748B',
             fontWeight: active ? '700' : '500'
         }}>
