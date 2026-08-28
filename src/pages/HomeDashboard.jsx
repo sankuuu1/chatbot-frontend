@@ -584,12 +584,14 @@ const NavItem = ({ icon, label, active, onClick }) => (
     <button
         onClick={onClick}
         style={{
+            flex: 1,
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'center',
+            justifyContent: 'center',
             background: 'transparent',
             border: 'none',
-            padding: '4px 16px',
+            padding: '6px 0',
             cursor: 'pointer',
             position: 'relative'
         }}

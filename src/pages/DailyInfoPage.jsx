@@ -654,7 +654,7 @@ const DailyInfoPage = () => {
                 maxWidth: '420px',
                 background: 'white',
                 display: 'flex',
-                justify: 'space-around',
+                justifyContent: 'space-around',
                 padding: '10px 15px 12px',
                 borderTop: '1px solid #F1F5F9',
                 boxShadow: '0 -4px 15px rgba(0,0,0,0.03)',
@@ -686,12 +686,14 @@ const NavItem = ({ icon, label, active, onClick }) => (
     <button
         onClick={onClick}
         style={{
+            flex: 1,
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'center',
+            justifyContent: 'center',
             background: 'transparent',
             border: 'none',
-            padding: '4px 16px',
+            padding: '6px 0',
             cursor: 'pointer',
             position: 'relative'
         }}
