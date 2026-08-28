@@ -4,7 +4,7 @@ import { X, Mic, Camera, ChevronRight, Info, Settings, Home, MessageSquare, Arro
 import RichResponseCard from '../components/RichResponseCard';
 
 const ChatInterface = () => {
-    const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+    const API_URL = import.meta.env.VITE_API_URL || 'https://chatbot-backend-1-nhq4.onrender.com';
     const navigate = useNavigate();
     const location = useLocation();
     const category = location.state?.category || 'general';

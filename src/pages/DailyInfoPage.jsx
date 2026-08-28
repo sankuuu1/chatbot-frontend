@@ -20,7 +20,7 @@ import {
 
 const DailyInfoPage = () => {
     const navigate = useNavigate();
-    const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+    const API_URL = import.meta.env.VITE_API_URL || 'https://chatbot-backend-1-nhq4.onrender.com';
 
     const [activeCategory, setActiveCategory] = useState('सर्व');
     const [selectedArticle, setSelectedArticle] = useState(null);
