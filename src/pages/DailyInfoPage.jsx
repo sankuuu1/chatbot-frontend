@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import {
     MapPin,
     ChevronDown,
+    ChevronUp,
     ChevronRight,
     MessageSquare,
     Info,
@@ -13,7 +14,8 @@ import {
     Sprout,
     Sun,
     CloudRain,
-    Sparkles
+    Sparkles,
+    X
 } from 'lucide-react';
 
 const DailyInfoPage = () => {
@@ -23,6 +25,7 @@ const DailyInfoPage = () => {
     const [activeCategory, setActiveCategory] = useState('सर्व');
     const [selectedArticle, setSelectedArticle] = useState(null);
     const [loading, setLoading] = useState(true);
+    const [isWeatherModalOpen, setIsWeatherModalOpen] = useState(false);
 
     const [infoData, setInfoData] = useState({
         location: "नागपूर, महाराष्ट्र",
@@ -190,149 +193,307 @@ const DailyInfoPage = () => {
             </div>
 
 
-            {/* --- WEATHER & ADVISORY CARD --- */}
+            {/* --- WEATHER FEATURE BUTTON (COMPACT & COLLAPSIBLE TRIGGER) --- */}
             <div style={{ padding: '0 20px', marginTop: '10px' }}>
-                <div style={{
-                    background: 'white',
-                    borderRadius: '24px',
-                    padding: '20px',
-                    border: '1px solid #F3F4F6',
-                    boxShadow: '0 4px 20px rgba(0,0,0,0.03)'
-                }}>
-
-                    {/* Main Weather Overview Grid */}
-                    <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: '15px', alignItems: 'center', paddingBottom: '16px' }}>
-
-                        {/* Temperature Side */}
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                            <div style={{ fontSize: '42px', lineHeight: '1' }}>⛅</div>
-                            <div>
-                                <div style={{ fontSize: '36px', fontWeight: '900', color: '#111827', lineHeight: '1' }}>
-                                    {infoData.weather.temperature}°
-                                </div>
-                                <div style={{ fontSize: '11px', color: '#6B7280', fontWeight: '600', marginTop: '4px' }}>
-                                    अंश सेल्सिअस
-                                </div>
-                                <div style={{ fontSize: '12px', color: '#4B5563', fontWeight: '600', marginTop: '2px' }}>
-                                    {infoData.weather.condition}
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* Rain Probability Side */}
+                <div
+                    onClick={() => setIsWeatherModalOpen(true)}
+                    style={{
+                        background: 'linear-gradient(135deg, #FFF8F0 0%, #FFFFFF 100%)',
+                        borderRadius: '20px',
+                        padding: '14px 18px',
+                        border: '1px solid #FFE0B2',
+                        boxShadow: '0 4px 15px rgba(230,81,0,0.06)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        cursor: 'pointer'
+                    }}
+                >
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                         <div style={{
-                            borderLeft: '1px solid #F3F4F6',
-                            paddingLeft: '16px',
+                            width: '42px',
+                            height: '42px',
+                            borderRadius: '50%',
+                            background: '#FFF3E0',
                             display: 'flex',
-                            flexDirection: 'column',
                             alignItems: 'center',
                             justifyContent: 'center',
-                            textAlign: 'center'
+                            fontSize: '22px'
                         }}>
-                            <div style={{
-                                width: '36px',
-                                height: '36px',
-                                borderRadius: '50%',
-                                background: '#FFF3E0',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                marginBottom: '4px'
-                            }}>
-                                <Droplets size={20} color="#E65100" />
-                            </div>
-                            <div style={{ fontSize: '22px', fontWeight: '900', color: '#111827', lineHeight: '1' }}>
-                                {infoData.weather.rain_probability}%
-                            </div>
-                            <div style={{ fontSize: '11px', color: '#6B7280', fontWeight: '600', marginTop: '4px' }}>
-                                पावसाची शक्यता
-                            </div>
-                            <div style={{ fontSize: '10px', color: '#9CA3AF', fontWeight: '600', marginTop: '2px' }}>
-                                {infoData.weather.time_label}
-                            </div>
+                            ⛅
                         </div>
-                    </div>
-
-                    {/* 4-Day Forecast Grid */}
-                    <div style={{
-                        display: 'grid',
-                        gridTemplateColumns: 'repeat(4, 1fr)',
-                        gap: '8px',
-                        padding: '12px 0',
-                        borderTop: '1px solid #F3F4F6',
-                        borderBottom: '1px solid #F3F4F6',
-                        margin: '4px 0 14px'
-                    }}>
-                        {infoData.forecast.map((fc, i) => (
-                            <div key={i} style={{
-                                textAlign: 'center',
-                                background: i === 0 ? '#FFF8F0' : '#F9FAFB',
-                                border: i === 0 ? '1px solid #FFE0B2' : '1px solid #F3F4F6',
-                                borderRadius: '14px',
-                                padding: '8px 4px'
-                            }}>
+                        <div>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                <h3 style={{ fontSize: '15px', fontWeight: '800', color: '#E65100', margin: 0 }}>
+                                    हवामान व पावसाचा अंदाज
+                                </h3>
                                 <span style={{
-                                    fontSize: '11px',
-                                    fontWeight: '700',
-                                    color: i === 0 ? '#E65100' : '#6B7280',
-                                    display: 'block',
-                                    marginBottom: '4px'
+                                    background: '#E65100',
+                                    color: 'white',
+                                    fontSize: '10px',
+                                    fontWeight: '800',
+                                    padding: '2px 7px',
+                                    borderRadius: '10px'
                                 }}>
-                                    {fc.day}
-                                </span>
-                                <span style={{ fontSize: '16px', display: 'block', marginBottom: '2px' }}>{fc.icon}</span>
-                                <span style={{ fontSize: '11px', fontWeight: '700', color: '#111827' }}>
-                                    {fc.high}° <span style={{ color: '#9CA3AF', fontWeight: '500' }}>/ {fc.low}°</span>
+                                    नवीन
                                 </span>
                             </div>
-                        ))}
-                    </div>
-
-                    {/* Farmer Advisory Banner */}
-                    <div
-                        onClick={() => navigate('/chat', { state: { query: 'शेतकऱ्यांसाठी आजची सूचना काय आहे?' } })}
-                        style={{
-                            background: '#FFF8F0',
-                            border: '1px solid #FFE0B2',
-                            borderRadius: '16px',
-                            padding: '12px 14px',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'space-between',
-                            cursor: 'pointer'
-                        }}
-                    >
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                            <div style={{
-                                width: '38px',
-                                height: '38px',
-                                borderRadius: '50%',
-                                background: '#FFF3E0',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                flexShrink: 0
-                            }}>
-                                <Sprout size={20} color="#E65100" />
-                            </div>
-                            <div>
-                                <h4 style={{ fontSize: '13px', fontWeight: '800', color: '#E65100', margin: 0 }}>
-                                    {infoData.advisory.title}
-                                </h4>
-                                <p style={{ fontSize: '11px', color: '#4B5563', fontWeight: '600', margin: '2px 0 0' }}>
-                                    {infoData.advisory.text}
-                                </p>
-                            </div>
+                            <p style={{ fontSize: '12px', color: '#4B5563', fontWeight: '600', margin: '2px 0 0' }}>
+                                {infoData.location.split(',')[0]} • {infoData.weather.temperature}°C • पावसाची शक्यता {infoData.weather.rain_probability}%
+                            </p>
                         </div>
-                        <ChevronRight size={18} color="#E65100" />
                     </div>
 
+                    <button style={{
+                        background: '#E65100',
+                        color: 'white',
+                        border: 'none',
+                        borderRadius: '18px',
+                        padding: '8px 14px',
+                        fontSize: '12px',
+                        fontWeight: '700',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '4px',
+                        cursor: 'pointer'
+                    }}>
+                        <span>तपासा 🌦️</span>
+                    </button>
                 </div>
             </div>
 
 
-            {/* --- NEWS & SCHEMES SECTION --- */}
-            <div style={{ marginTop: '24px' }}>
+            {/* --- EXPANDABLE WEATHER POP-UP MODAL (COLLAPSIBLE) --- */}
+            {isWeatherModalOpen && (
+                <div style={{
+                    position: 'fixed',
+                    inset: 0,
+                    background: 'rgba(0, 0, 0, 0.45)',
+                    backdropFilter: 'blur(4px)',
+                    zIndex: 100,
+                    display: 'flex',
+                    alignItems: 'flex-end',
+                    justifyContent: 'center'
+                }}>
+                    <div style={{
+                        background: 'white',
+                        borderTopLeftRadius: '28px',
+                        borderTopRightRadius: '28px',
+                        padding: '24px 20px 30px',
+                        width: '100%',
+                        maxWidth: '420px',
+                        maxHeight: '85vh',
+                        overflowY: 'auto',
+                        boxShadow: '0 -10px 30px rgba(0,0,0,0.2)',
+                        animation: 'fadeIn 0.3s ease-out'
+                    }}>
+
+                        {/* Modal Header & Close Button */}
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
+                            <div>
+                                <h2 style={{ fontSize: '20px', fontWeight: '900', color: '#111827', margin: 0, display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                    आजचा हवामान अंदाज 🌤️
+                                </h2>
+                                <p style={{ fontSize: '12px', color: '#6B7280', margin: '2px 0 0', fontWeight: '500' }}>
+                                    {infoData.location}
+                                </p>
+                            </div>
+                            <button
+                                onClick={() => setIsWeatherModalOpen(false)}
+                                style={{
+                                    background: '#F3F4F6',
+                                    border: 'none',
+                                    borderRadius: '50%',
+                                    width: '36px',
+                                    height: '36px',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    color: '#4B5563',
+                                    cursor: 'pointer'
+                                }}
+                            >
+                                <X size={20} />
+                            </button>
+                        </div>
+
+                        {/* Main Weather Card Inside Modal */}
+                        <div style={{
+                            background: '#FFF8F0',
+                            borderRadius: '24px',
+                            padding: '20px',
+                            border: '1px solid #FFE0B2',
+                            marginBottom: '16px'
+                        }}>
+                            <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: '15px', alignItems: 'center', paddingBottom: '16px' }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                                    <div style={{ fontSize: '42px', lineHeight: '1' }}>⛅</div>
+                                    <div>
+                                        <div style={{ fontSize: '36px', fontWeight: '900', color: '#111827', lineHeight: '1' }}>
+                                            {infoData.weather.temperature}°
+                                        </div>
+                                        <div style={{ fontSize: '11px', color: '#6B7280', fontWeight: '600', marginTop: '4px' }}>
+                                            अंश सेल्सिअस
+                                        </div>
+                                        <div style={{ fontSize: '12px', color: '#4B5563', fontWeight: '600', marginTop: '2px' }}>
+                                            {infoData.weather.condition}
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div style={{
+                                    borderLeft: '1px solid #FFE0B2',
+                                    paddingLeft: '16px',
+                                    display: 'flex',
+                                    flexDirection: 'column',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    textAlign: 'center'
+                                }}>
+                                    <div style={{
+                                        width: '36px',
+                                        height: '36px',
+                                        borderRadius: '50%',
+                                        background: '#FFF3E0',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        marginBottom: '4px'
+                                    }}>
+                                        <Droplets size={20} color="#E65100" />
+                                    </div>
+                                    <div style={{ fontSize: '22px', fontWeight: '900', color: '#111827', lineHeight: '1' }}>
+                                        {infoData.weather.rain_probability}%
+                                    </div>
+                                    <div style={{ fontSize: '11px', color: '#6B7280', fontWeight: '600', marginTop: '4px' }}>
+                                        पावसाची शक्यता
+                                    </div>
+                                    <div style={{ fontSize: '10px', color: '#9CA3AF', fontWeight: '600', marginTop: '2px' }}>
+                                        {infoData.weather.time_label}
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* 4-Day Forecast Grid */}
+                            <div style={{
+                                display: 'grid',
+                                gridTemplateColumns: 'repeat(4, 1fr)',
+                                gap: '8px',
+                                padding: '12px 0',
+                                borderTop: '1px solid #FFE0B2',
+                                borderBottom: '1px solid #FFE0B2',
+                                margin: '4px 0 14px'
+                            }}>
+                                {infoData.forecast.map((fc, i) => (
+                                    <div key={i} style={{
+                                        textAlign: 'center',
+                                        background: 'white',
+                                        border: i === 0 ? '1px solid #E65100' : '1px solid #F3F4F6',
+                                        borderRadius: '14px',
+                                        padding: '8px 4px'
+                                    }}>
+                                        <span style={{
+                                            fontSize: '11px',
+                                            fontWeight: '700',
+                                            color: i === 0 ? '#E65100' : '#6B7280',
+                                            display: 'block',
+                                            marginBottom: '4px'
+                                        }}>
+                                            {fc.day}
+                                        </span>
+                                        <span style={{ fontSize: '16px', display: 'block', marginBottom: '2px' }}>{fc.icon}</span>
+                                        <span style={{ fontSize: '11px', fontWeight: '700', color: '#111827' }}>
+                                            {fc.high}° <span style={{ color: '#9CA3AF', fontWeight: '500' }}>/ {fc.low}°</span>
+                                        </span>
+                                    </div>
+                                ))}
+                            </div>
+
+                            {/* Farmer Advisory */}
+                            <div style={{
+                                background: 'white',
+                                borderRadius: '16px',
+                                padding: '12px 14px',
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '12px'
+                            }}>
+                                <div style={{
+                                    width: '38px',
+                                    height: '38px',
+                                    borderRadius: '50%',
+                                    background: '#FFF3E0',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    flexShrink: 0
+                                }}>
+                                    <Sprout size={20} color="#E65100" />
+                                </div>
+                                <div>
+                                    <h4 style={{ fontSize: '13px', fontWeight: '800', color: '#E65100', margin: 0 }}>
+                                        {infoData.advisory.title}
+                                    </h4>
+                                    <p style={{ fontSize: '11px', color: '#4B5563', fontWeight: '600', margin: '2px 0 0' }}>
+                                        {infoData.advisory.text}
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Modal Action Buttons */}
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                            <button
+                                onClick={() => {
+                                    setIsWeatherModalOpen(false);
+                                    navigate('/chat', { state: { query: 'नागपूरमधील आजच्या पावसाचा सविस्तर अंदाज सांगा.' } });
+                                }}
+                                style={{
+                                    width: '100%',
+                                    background: '#E65100',
+                                    color: 'white',
+                                    border: 'none',
+                                    borderRadius: '16px',
+                                    padding: '14px',
+                                    fontSize: '14px',
+                                    fontWeight: '800',
+                                    cursor: 'pointer',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    gap: '8px',
+                                    boxShadow: '0 4px 15px rgba(230,81,0,0.3)'
+                                }}
+                            >
+                                <MessageSquare size={18} />
+                                <span>बंधूला हवामानाबद्दल विचारा</span>
+                            </button>
+
+                            <button
+                                onClick={() => setIsWeatherModalOpen(false)}
+                                style={{
+                                    width: '100%',
+                                    background: '#F3F4F6',
+                                    color: '#4B5563',
+                                    border: 'none',
+                                    borderRadius: '16px',
+                                    padding: '12px',
+                                    fontSize: '14px',
+                                    fontWeight: '700',
+                                    cursor: 'pointer'
+                                }}
+                            >
+                                बंद करा (Close)
+                            </button>
+                        </div>
+
+                    </div>
+                </div>
+            )}
+
+
+            {/* --- NEWS & SCHEMES SECTION (NEWS ONLY) --- */}
+            <div style={{ marginTop: '20px' }}>
 
                 {/* Section Header */}
                 <div style={{ padding: '0 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
@@ -477,6 +638,9 @@ const DailyInfoPage = () => {
                     </button>
                 </div>
 
+                {/* EXTRA BOTTOM SPACER */}
+                <div style={{ height: '140px', width: '100%', flexShrink: 0 }}></div>
+
             </div>
 
 
@@ -490,7 +654,7 @@ const DailyInfoPage = () => {
                 maxWidth: '420px',
                 background: 'white',
                 display: 'flex',
-                justifyContent: 'space-around',
+                justify: 'space-around',
                 padding: '10px 15px 12px',
                 borderTop: '1px solid #F1F5F9',
                 boxShadow: '0 -4px 15px rgba(0,0,0,0.03)',
@@ -518,7 +682,6 @@ const DailyInfoPage = () => {
     );
 };
 
-// Bottom Navigation Item Component
 const NavItem = ({ icon, label, active, onClick }) => (
     <button
         onClick={onClick}
