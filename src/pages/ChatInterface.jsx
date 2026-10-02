@@ -3,11 +3,13 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { X, Mic, ChevronRight, MessageSquare, ArrowLeft } from 'lucide-react';
 import RichResponseCard from '../components/RichResponseCard';
 import { fetchChatResponse, transcribeAudioBlob } from '../services/api';
+import { useChat } from '../context/ChatContext';
 
 const ChatInterface = () => {
     const navigate = useNavigate();
     const location = useLocation();
     const category = location.state?.category || 'general';
+    const { language, t } = useChat();
 
     const [input, setInput] = useState('');
     const [history, setHistory] = useState([]);
@@ -15,7 +17,6 @@ const ChatInterface = () => {
     const [richData, setRichData] = useState(null);
     const [recognitionRef, setRecognitionRef] = useState(null);
     const [mediaRecorderRef, setMediaRecorderRef] = useState(null);
-    const [audioChunks, setAudioChunks] = useState([]);
     const [transcriptAccumulated, setTranscriptAccumulated] = useState('');
     const messagesEndRef = useRef(null);
 
@@ -46,15 +47,15 @@ const ChatInterface = () => {
         setRichData(null);
 
         try {
-            const data = await fetchChatResponse(userText, category, history);
-            const aiMsg = { sender: 'ai', text: data.response || 'उत्तरामध्ये समस्या आली.' };
+            const data = await fetchChatResponse(userText, category, history, language);
+            const aiMsg = { sender: 'ai', text: data.response || 'Error generating response.' };
             setHistory(prev => [...prev, aiMsg]);
             if (data.rich_data) {
                 setRichData(data.rich_data);
             }
         } catch (error) {
             console.error(error);
-            setHistory(prev => [...prev, { sender: 'ai', text: `⚠️ एरर: ${error.message}` }]);
+            setHistory(prev => [...prev, { sender: 'ai', text: `⚠️ Error: ${error.message}` }]);
         } finally {
             setViewState('IDLE');
         }
@@ -64,12 +65,13 @@ const ChatInterface = () => {
         setViewState('LISTENING');
         setTranscriptAccumulated('');
 
-        // 1. Try browser Native Speech Recognition (Chrome/Android)
+        const speechLangCode = language === 'hi' ? 'hi-IN' : language === 'en' ? 'en-IN' : 'mr-IN';
+
         if (('webkitSpeechRecognition' in window) || ('SpeechRecognition' in window)) {
             try {
                 const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
                 const recognition = new SpeechRecognition();
-                recognition.lang = 'mr-IN';
+                recognition.lang = speechLangCode;
                 recognition.continuous = true;
                 recognition.interimResults = true;
 
@@ -97,13 +99,12 @@ const ChatInterface = () => {
             }
         }
 
-        // 2. Fallback: Standard MediaRecorder + Groq Whisper API backend
         startMediaRecorderFallback();
     };
 
     const startMediaRecorderFallback = () => {
         if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-            alert("तुमच्या ब्राऊजरमध्ये आवाजाची सुविधा उपलब्ध नाही.");
+            alert("Microphone is not supported in your browser.");
             setViewState('IDLE');
             return;
         }
@@ -123,7 +124,7 @@ const ChatInterface = () => {
                     const audioBlob = new Blob(chunks, { type: 'audio/webm' });
                     setViewState('THINKING');
                     try {
-                        const result = await transcribeAudioBlob(audioBlob);
+                        const result = await transcribeAudioBlob(audioBlob, language);
                         if (result.text && result.text.trim()) {
                             setTranscriptAccumulated(result.text);
                             handleSend(result.text);
@@ -132,7 +133,7 @@ const ChatInterface = () => {
                         }
                     } catch (err) {
                         console.error('Whisper STT failed:', err);
-                        alert('आवाज ऐकण्यात समस्या आली. (Speech transcription error)');
+                        alert('Speech transcription error.');
                         setViewState('IDLE');
                     }
                 };
@@ -141,7 +142,7 @@ const ChatInterface = () => {
             })
             .catch((err) => {
                 console.error("Microphone access denied:", err);
-                alert("मायक्रोफोन परवानगी नाकारली गेली.");
+                alert("Microphone access denied.");
                 setViewState('IDLE');
             });
     };
@@ -196,13 +197,13 @@ const ChatInterface = () => {
                             display: 'inline-block',
                             marginBottom: '12px'
                         }}>
-                            🎙️ मायक्रोफोन सुरू आहे
+                            {t?.micActive || '🎙️ Microphone is Active'}
                         </span>
                         <h2 style={{ fontSize: '26px', fontWeight: '900', color: '#111827', margin: 0 }}>
-                            बंधू ऐकत आहेत...
+                            {t?.voiceListening || 'Bandhu is listening...'}
                         </h2>
                         <p style={{ fontSize: '14px', color: '#6B7280', marginTop: '6px', fontWeight: '500' }}>
-                            तुमचा प्रश्न स्पष्टपणे बोला
+                            {t?.speakClearly || 'Speak your question clearly'}
                         </p>
                     </div>
 
@@ -251,7 +252,7 @@ const ChatInterface = () => {
                                 margin: 0,
                                 lineHeight: '1.4'
                             }}>
-                                {transcriptAccumulated || "बोलत राहा..."}
+                                {transcriptAccumulated || t?.voiceListening}
                             </p>
                         </div>
                     </div>
@@ -273,7 +274,7 @@ const ChatInterface = () => {
                             gap: '10px'
                         }}
                     >
-                        <span>बोलणे पूर्ण झाले (Done)</span>
+                        <span>{t?.doneSpeaking || 'Done Speaking'}</span>
                         <ChevronRight size={20} />
                     </button>
                 </div>
@@ -297,11 +298,11 @@ const ChatInterface = () => {
                         <ArrowLeft size={18} />
                     </button>
                     <div>
-                        <h3 style={{ fontSize: '16px', fontWeight: '800', margin: 0, lineHeight: '1.2' }}>बंधू (Bandhu) 🙏</h3>
+                        <h3 style={{ fontSize: '16px', fontWeight: '800', margin: 0, lineHeight: '1.2' }}>{t?.appName || 'Bandhu AI'} 🙏</h3>
                         <p style={{ fontSize: '11px', opacity: 0.9, margin: 0 }}>
-                            {category === 'education' ? 'वैयक्तिक शिक्षक' :
-                                category === 'farming' ? 'कृषी मित्र' :
-                                    category === 'health' ? 'आरोग्य सल्लागार' : 'नेहमी सोबत'}
+                            {category === 'education' ? (t?.categories?.education || 'Teacher') :
+                                category === 'farming' ? (t?.categories?.farming || 'Farming Advisor') :
+                                    category === 'health' ? (t?.categories?.health || 'Health Advisor') : (t?.tagline || 'AI Assistant')}
                         </p>
                     </div>
                 </div>
@@ -338,10 +339,10 @@ const ChatInterface = () => {
                             <MessageSquare size={32} color="#E65100" />
                         </div>
                         <h3 style={{ fontSize: '18px', fontWeight: '800', color: '#111827', marginBottom: '6px' }}>
-                            नमस्कार! मी बंधू.
+                            {t?.greeting || 'Hello! I am Bandhu.'}
                         </h3>
                         <p style={{ fontSize: '14px', color: '#6B7280', maxWidth: '280px', margin: '0 auto', lineHeight: '1.4' }}>
-                            खालील प्रश्न निवडा किंवा मायक्रोफोन बटण दाबून बोला.
+                            {t?.greetingSub || 'How can I help you today?'}
                         </p>
                     </div>
                 )}
@@ -381,7 +382,7 @@ const ChatInterface = () => {
                         gap: '8px'
                     }}>
                         <span style={{ fontSize: '13px', color: '#666', fontWeight: '600' }}>
-                            बंधू टाईप करत आहेत...
+                            {t?.typing || 'Bandhu is typing...'}
                         </span>
                     </div>
                 )}
@@ -408,9 +409,9 @@ const ChatInterface = () => {
                 zIndex: 30
             }}>
                 <div style={{ display: 'flex', gap: '8px', padding: '10px 16px 6px', overflowX: 'auto' }}>
-                    <SuggestionPill text="आज पाऊस पडेल का?" onClick={() => handleSend("आज पाऊस पडेल का?")} />
-                    <SuggestionPill text="कापसाचा बाजारभाव?" onClick={() => handleSend("कापसाचा बाजारभाव?")} />
-                    <SuggestionPill text="सरकारी योजना?" onClick={() => handleSend("सरकारी योजना?")} />
+                    <SuggestionPill text={t?.suggestions?.rain || "Will it rain today?"} onClick={() => handleSend(t?.suggestions?.rain || "Will it rain today?")} />
+                    <SuggestionPill text={t?.suggestions?.cotton || "Cotton market price?"} onClick={() => handleSend(t?.suggestions?.cotton || "Cotton market price?")} />
+                    <SuggestionPill text={t?.suggestions?.schemes || "Government schemes?"} onClick={() => handleSend(t?.suggestions?.schemes || "Government schemes?")} />
                 </div>
 
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '6px 16px 10px' }}>
@@ -444,7 +445,7 @@ const ChatInterface = () => {
                     }}>
                         <input
                             type="text"
-                            placeholder="इथे प्रश्न लिहा..."
+                            placeholder={t?.askPlaceholder || "Ask anything here..."}
                             value={input}
                             onChange={(e) => setInput(e.target.value)}
                             onKeyDown={(e) => {

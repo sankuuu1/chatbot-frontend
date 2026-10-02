@@ -1,14 +1,33 @@
-import React, { createContext, useContext, useState } from 'react';
+import React, { createContext, useContext, useState, useEffect } from 'react';
+import { translations } from '../translations';
 
 const ChatContext = createContext();
 
 export const ChatProvider = ({ children }) => {
     const [history, setHistory] = useState([]);
     const [activeCategory, setActiveCategory] = useState('general');
-    const [userProfile, setUserProfile] = useState({
-        name: 'संतोष जाधव',
-        phone: '+919876543210',
+    const [language, setLanguageState] = useState(() => localStorage.getItem('bandhu_lang') || 'mr');
+    const [selectedLangLabel, setSelectedLangLabel] = useState(() => {
+        const lang = localStorage.getItem('bandhu_lang') || 'mr';
+        return lang === 'hi' ? 'हिंदी' : lang === 'en' ? 'English' : 'मराठी';
     });
+
+    const setLanguage = (langCode) => {
+        let code = 'mr';
+        let label = 'मराठी';
+        if (langCode === 'English' || langCode === 'en') {
+            code = 'en';
+            label = 'English';
+        } else if (langCode === 'हिंदी' || langCode === 'hi') {
+            code = 'hi';
+            label = 'हिंदी';
+        }
+        setLanguageState(code);
+        setSelectedLangLabel(label);
+        localStorage.setItem('bandhu_lang', code);
+    };
+
+    const t = translations[language] || translations.mr;
 
     const addMessage = (msg) => {
         setHistory(prev => [...prev, msg]);
@@ -26,8 +45,10 @@ export const ChatProvider = ({ children }) => {
             clearHistory,
             activeCategory,
             setActiveCategory,
-            userProfile,
-            setUserProfile
+            language,
+            selectedLangLabel,
+            setLanguage,
+            t
         }}>
             {children}
         </ChatContext.Provider>

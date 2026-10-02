@@ -1,8 +1,8 @@
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:5000';
 const PRODUCTION_FALLBACK = 'https://chatbot-backend-1-nhq4.onrender.com';
 
-export const fetchChatResponse = async (message, category = 'general', history = []) => {
-    const payload = { message, category, history };
+export const fetchChatResponse = async (message, category = 'general', history = [], language = 'mr') => {
+    const payload = { message, category, history, language };
 
     try {
         const res = await fetch(`${API_BASE_URL}/chat`, {
@@ -11,7 +11,6 @@ export const fetchChatResponse = async (message, category = 'general', history =
             body: JSON.stringify(payload),
         });
         if (!res.ok && API_BASE_URL !== PRODUCTION_FALLBACK) {
-            // Fallback to production cloud endpoint if local server is down
             const fallbackRes = await fetch(`${PRODUCTION_FALLBACK}/chat`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -35,19 +34,20 @@ export const fetchChatResponse = async (message, category = 'general', history =
     }
 };
 
-export const fetchDailyInfo = async () => {
+export const fetchDailyInfo = async (language = 'mr') => {
     try {
-        const res = await fetch(`${API_BASE_URL}/api/daily-info`);
+        const res = await fetch(`${API_BASE_URL}/api/daily-info?lang=${language}`);
         return await res.json();
     } catch (err) {
-        const res = await fetch(`${PRODUCTION_FALLBACK}/api/daily-info`);
+        const res = await fetch(`${PRODUCTION_FALLBACK}/api/daily-info?lang=${language}`);
         return await res.json();
     }
 };
 
-export const transcribeAudioBlob = async (audioBlob) => {
+export const transcribeAudioBlob = async (audioBlob, language = 'mr') => {
     const formData = new FormData();
     formData.append('file', audioBlob, 'speech.webm');
+    formData.append('language', language);
 
     const res = await fetch(`${API_BASE_URL}/api/transcribe`, {
         method: 'POST',

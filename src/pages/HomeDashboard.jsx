@@ -18,11 +18,12 @@ import {
     X
 } from 'lucide-react';
 import bandhuLogo from '../assets/Gemini_Generated_Image_za4cfxza4cfxza4c-removebg-preview.png';
+import { useChat } from '../context/ChatContext';
 
 const HomeDashboard = () => {
     const navigate = useNavigate();
+    const { selectedLangLabel, setLanguage, t } = useChat();
     const [searchInput, setSearchInput] = useState('');
-    const [selectedLang, setSelectedLang] = useState('मराठी');
     const [isLangModalOpen, setIsLangModalOpen] = useState(false);
     const [showAllCategories, setShowAllCategories] = useState(false);
 
@@ -40,7 +41,6 @@ const HomeDashboard = () => {
         }
     };
 
-    // Camera Upload Trigger
     const handleCameraClick = (e) => {
         e.stopPropagation();
         const fileInput = document.createElement('input');
@@ -48,7 +48,7 @@ const HomeDashboard = () => {
         fileInput.accept = 'image/*';
         fileInput.onchange = (e) => {
             if (e.target.files && e.target.files[0]) {
-                alert(`फोटो निवडला: ${e.target.files[0].name}. (विश्लेषणासाठी चॅटकडे पाठवत आहे)`);
+                alert(`Photo selected: ${e.target.files[0].name}. (Sending to chat for analysis)`);
                 navigate('/chat', { state: { hasImage: true, imageName: e.target.files[0].name } });
             }
         };
@@ -111,7 +111,7 @@ const HomeDashboard = () => {
                         boxShadow: '0 2px 6px rgba(0,0,0,0.02)'
                     }}
                 >
-                    <span>{selectedLang}</span>
+                    <span>{selectedLangLabel}</span>
                     <ChevronDown size={16} color="#6B7280" />
                 </button>
             </div>
@@ -139,7 +139,7 @@ const HomeDashboard = () => {
                     margin: 0,
                     letterSpacing: '-0.5px'
                 }}>
-                    नमस्कार!
+                    {t?.greeting || 'Hello!'}
                 </h1>
                 <p style={{
                     color: '#4B5563',
@@ -147,7 +147,7 @@ const HomeDashboard = () => {
                     fontSize: '16px',
                     fontWeight: '500'
                 }}>
-                    बोला, <span style={{ color: '#E65100', fontWeight: '700' }}>बंधू</span> समजून घेईल.
+                    {t?.greetingSub || 'How can I help you today?'}
                 </p>
 
                 {/* MIC BUTTON WITH DYNAMIC VOICE WAVES */}
@@ -159,7 +159,6 @@ const HomeDashboard = () => {
                     justifyContent: 'center',
                     margin: '10px 0 4px'
                 }}>
-                    {/* DYNAMIC VOICE WAVE RINGS */}
                     <div className="voice-wave-ring voice-wave-1"></div>
                     <div className="voice-wave-ring voice-wave-2"></div>
                     <div className="voice-wave-ring voice-wave-3"></div>
@@ -186,10 +185,9 @@ const HomeDashboard = () => {
                 </div>
 
                 <p style={{ fontSize: '13px', color: '#1F2937', fontWeight: '700', marginTop: '2px' }}>
-                    बोलण्यासाठी टॅप करा
+                    {t?.speakClearly || 'Tap to Speak'}
                 </p>
             </div>
-
 
             {/* --- INPUT / SEARCH BAR WITH CAMERA & MIC ICONS --- */}
             <div style={{ padding: '0 20px', marginTop: '16px' }}>
@@ -209,7 +207,7 @@ const HomeDashboard = () => {
                 >
                     <input
                         type="text"
-                        placeholder="तुमचा प्रश्न लिहा..."
+                        placeholder={t?.askPlaceholder || 'Ask anything...'}
                         value={searchInput}
                         onChange={(e) => setSearchInput(e.target.value)}
                         onKeyDown={handleSearchSubmit}
@@ -226,7 +224,6 @@ const HomeDashboard = () => {
                     <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexShrink: 0 }}>
                         <button
                             onClick={handleCameraClick}
-                            title="फोटो अपलोड करा"
                             style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#E65100', padding: 0 }}
                         >
                             <Camera size={20} />
@@ -237,7 +234,6 @@ const HomeDashboard = () => {
                                 e.stopPropagation();
                                 navigate('/chat', { state: { autoListen: true } });
                             }}
-                            title="आवाजाने बोला"
                             style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#E65100', padding: 0 }}
                         >
                             <Mic size={20} />
@@ -246,142 +242,26 @@ const HomeDashboard = () => {
                 </div>
             </div>
 
-
-            {/* --- SECTION 1: काही उदाहरणे --- */}
-            <div style={{ marginTop: '20px' }}>
-                <p style={{
-                    fontSize: '14px',
-                    fontWeight: '600',
-                    color: '#4B5563',
-                    margin: '0 20px 8px'
-                }}>
-                    काही उदाहरणे
-                </p>
-
-                <div style={{
-                    display: 'flex',
-                    gap: '10px',
-                    overflowX: 'auto',
-                    padding: '0 20px 10px'
-                }}>
+            {/* --- SUGGESTION CHIPS --- */}
+            <div style={{ padding: '24px 20px 0' }}>
+                <div style={{ display: 'flex', gap: '10px', overflowX: 'auto', paddingBottom: '8px' }}>
                     <SuggestionChip
                         icon="🌧️"
-                        text="आज पाऊस पडेल का?"
-                        onClick={() => navigate('/chat', { state: { query: 'आज पाऊस पडेल का?' } })}
+                        text={t?.suggestions?.rain || "Will it rain today?"}
+                        onClick={() => navigate('/chat', { state: { query: t?.suggestions?.rain || "Will it rain today?" } })}
                     />
                     <SuggestionChip
-                        icon="🍃"
-                        text="कापसावर कीड आली आहे?"
-                        onClick={() => navigate('/chat', { state: { category: 'farming', query: 'कापसावर कीड आली आहे' } })}
+                        icon="📈"
+                        text={t?.suggestions?.cotton || "Cotton market price?"}
+                        onClick={() => navigate('/chat', { state: { query: t?.suggestions?.cotton || "Cotton market price?" } })}
+                    />
+                    <SuggestionChip
+                        icon="🏛️"
+                        text={t?.suggestions?.schemes || "Government schemes?"}
+                        onClick={() => navigate('/chat', { state: { query: t?.suggestions?.schemes || "Government schemes?" } })}
                     />
                 </div>
             </div>
-
-
-            {/* --- SECTION 2: बंधू कशात मदत करू? --- */}
-            <div style={{ padding: '10px 20px 20px' }}>
-                <h3 style={{
-                    fontSize: '19px',
-                    fontWeight: '800',
-                    color: '#111827',
-                    margin: '0 0 14px'
-                }}>
-                    बंधू कशात मदत करू?
-                </h3>
-
-                <div style={{
-                    display: 'grid',
-                    gridTemplateColumns: '1fr 1fr',
-                    gap: '12px'
-                }}>
-                    {/* FARMING CARD - SOFT GREEN TINT */}
-                    <CategoryCard
-                        title="शेती"
-                        subtitle="पीक, कीड, बाजारभाव, फवारणी सल्ला"
-                        titleColor="#1B5E20"
-                        cardBg="#F4F8F4"
-                        cardBorder="#E2EFE2"
-                        badgeBg="#E8F5E9"
-                        arrowBg="#C8E6C9"
-                        arrowColor="#1B5E20"
-                        icon={<Sprout size={26} color="#2E7D32" strokeWidth={2} />}
-                        onClick={() => navigate('/chat', { state: { category: 'farming' } })}
-                    />
-
-                    {/* EDUCATION CARD - SOFT BLUE TINT */}
-                    <CategoryCard
-                        title="शिक्षण"
-                        subtitle="अभ्यास, गृहपाठ, प्रश्न व स्पष्टीकरण"
-                        titleColor="#0D47A1"
-                        cardBg="#F4F8FC"
-                        cardBorder="#E2EDF8"
-                        badgeBg="#E3F2FD"
-                        arrowBg="#BBDEFB"
-                        arrowColor="#0D47A1"
-                        icon={<BookOpen size={26} color="#1565C0" strokeWidth={2} />}
-                        onClick={() => navigate('/chat', { state: { category: 'education' } })}
-                    />
-
-                    {/* EXPANDED CATEGORIES (HEALTH & HELP) */}
-                    {showAllCategories && (
-                        <>
-                            {/* HEALTH CARD - SOFT PINK TINT */}
-                            <CategoryCard
-                                title="आरोग्य"
-                                subtitle="लक्षणे, प्राथमिक माहिती, आरोग्य सल्ला"
-                                titleColor="#B71C1C"
-                                cardBg="#FFF5F5"
-                                cardBorder="#FDE8E8"
-                                badgeBg="#FFEBEE"
-                                arrowBg="#FFCDD2"
-                                arrowColor="#B71C1C"
-                                icon={<Heart size={26} color="#C62828" strokeWidth={2} />}
-                                onClick={() => navigate('/chat', { state: { category: 'health' } })}
-                            />
-
-                            {/* HELP CARD - SOFT AMBER TINT */}
-                            <CategoryCard
-                                title="मदत"
-                                subtitle="दैनंदिन प्रश्न, सरकारी माहिती, इतर मदत"
-                                titleColor="#E65100"
-                                cardBg="#FFFDF0"
-                                cardBorder="#FEF3C7"
-                                badgeBg="#FFF3E0"
-                                arrowBg="#FFE0B2"
-                                arrowColor="#E65100"
-                                icon={<HelpCircle size={26} color="#EF6C00" strokeWidth={2} />}
-                                onClick={() => navigate('/chat', { state: { category: 'help' } })}
-                            />
-                        </>
-                    )}
-                </div>
-
-                {/* "सर्व विषय पाहा →" / "कमी विषय पाहा ↑" TOGGLE BUTTON */}
-                <button
-                    onClick={() => setShowAllCategories(!showAllCategories)}
-                    style={{
-                        width: '100%',
-                        marginTop: '16px',
-                        background: '#FFF8F0',
-                        border: '1px solid #FFE0B2',
-                        borderRadius: '24px',
-                        padding: '12px',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        gap: '8px',
-                        color: '#E65100',
-                        fontWeight: '700',
-                        fontSize: '15px',
-                        cursor: 'pointer',
-                        boxShadow: '0 2px 6px rgba(230,81,0,0.04)'
-                    }}
-                >
-                    <span>{showAllCategories ? 'कमी विषय पाहा' : 'सर्व विषय पाहा'}</span>
-                    {showAllCategories ? <ArrowUp size={18} /> : <ArrowRight size={18} />}
-                </button>
-            </div>
-
 
             {/* --- LANGUAGE SELECTION MODAL --- */}
             {isLangModalOpen && (
@@ -405,7 +285,7 @@ const HomeDashboard = () => {
                         boxShadow: '0 10px 25px rgba(0,0,0,0.15)'
                     }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-                            <h3 style={{ fontSize: '18px', fontWeight: '800', color: '#111827' }}>भाषा निवडा (Language)</h3>
+                            <h3 style={{ fontSize: '18px', fontWeight: '800', color: '#111827' }}>{t?.selectLanguage || 'Select Language'}</h3>
                             <button onClick={() => setIsLangModalOpen(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#6B7280' }}>
                                 <X size={20} />
                             </button>
@@ -416,7 +296,7 @@ const HomeDashboard = () => {
                                 <button
                                     key={lang}
                                     onClick={() => {
-                                        setSelectedLang(lang);
+                                        setLanguage(lang);
                                         setIsLangModalOpen(false);
                                     }}
                                     style={{
@@ -425,16 +305,16 @@ const HomeDashboard = () => {
                                         justifyContent: 'space-between',
                                         padding: '14px 16px',
                                         borderRadius: '16px',
-                                        border: selectedLang === lang ? '2px solid #E65100' : '1px solid #E5E7EB',
-                                        background: selectedLang === lang ? '#FFF8F0' : 'white',
+                                        border: selectedLangLabel === lang ? '2px solid #E65100' : '1px solid #E5E7EB',
+                                        background: selectedLangLabel === lang ? '#FFF8F0' : 'white',
                                         fontSize: '15px',
-                                        fontWeight: selectedLang === lang ? '700' : '500',
-                                        color: selectedLang === lang ? '#E65100' : '#374151',
+                                        fontWeight: selectedLangLabel === lang ? '700' : '500',
+                                        color: selectedLangLabel === lang ? '#E65100' : '#374151',
                                         cursor: 'pointer'
                                     }}
                                 >
                                     <span>{lang}</span>
-                                    {selectedLang === lang && <Check size={18} color="#E65100" />}
+                                    {selectedLangLabel === lang && <Check size={18} color="#E65100" />}
                                 </button>
                             ))}
                         </div>
@@ -453,12 +333,11 @@ const HomeDashboard = () => {
                                 cursor: 'pointer'
                             }}
                         >
-                            निश्चित करा (Confirm)
+                            {t?.confirm || 'Confirm'}
                         </button>
                     </div>
                 </div>
             )}
-
 
             {/* --- BOTTOM NAVIGATION BAR --- */}
             <div style={{
@@ -478,18 +357,18 @@ const HomeDashboard = () => {
             }}>
                 <NavItem
                     icon={<Home size={22} />}
-                    label="मुख्य"
+                    label={t?.home || 'Home'}
                     active
                     onClick={() => navigate('/home')}
                 />
                 <NavItem
                     icon={<Info size={22} />}
-                    label="आजची माहिती"
+                    label={t?.dailyInfo || 'Daily Info'}
                     onClick={() => navigate('/info')}
                 />
                 <NavItem
                     icon={<Settings size={22} />}
-                    label="सेटिंग्ज"
+                    label={t?.settings || 'Settings'}
                     onClick={() => navigate('/settings')}
                 />
             </div>
@@ -498,7 +377,6 @@ const HomeDashboard = () => {
     );
 };
 
-// Suggestion Chip Component
 const SuggestionChip = ({ icon, text, onClick }) => (
     <button
         onClick={onClick}
@@ -518,103 +396,30 @@ const SuggestionChip = ({ icon, text, onClick }) => (
             boxShadow: '0 2px 8px rgba(0,0,0,0.02)'
         }}
     >
-        <span style={{ fontSize: '15px' }}>{icon}</span>
+        <span>{icon}</span>
         <span>{text}</span>
     </button>
 );
 
-// Modern Category Card Component
-const CategoryCard = ({ title, subtitle, titleColor, cardBg, cardBorder, badgeBg, arrowBg, arrowColor, icon, onClick }) => (
-    <div
-        onClick={onClick}
-        style={{
-            background: cardBg || 'white',
-            borderRadius: '24px',
-            padding: '18px 16px',
-            display: 'flex',
-            flexDirection: 'column',
-            justifyContent: 'space-between',
-            border: `1px solid ${cardBorder || '#EAF0EA'}`,
-            cursor: 'pointer',
-            minHeight: '145px',
-            position: 'relative'
-        }}
-    >
-        <div>
-            <div style={{
-                width: '46px',
-                height: '46px',
-                borderRadius: '50%',
-                background: badgeBg,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                marginBottom: '12px'
-            }}>
-                {icon}
-            </div>
-            <h4 style={{ fontSize: '18px', fontWeight: '800', color: titleColor, marginBottom: '4px', margin: 0 }}>
-                {title}
-            </h4>
-            <p style={{ fontSize: '11px', color: '#64748B', lineHeight: '1.4', fontWeight: '500', marginTop: '4px', margin: 0 }}>
-                {subtitle}
-            </p>
-        </div>
-
-        {/* Circular Arrow Button at Bottom Right */}
-        <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '10px' }}>
-            <div style={{
-                width: '30px',
-                height: '30px',
-                borderRadius: '50%',
-                background: arrowBg,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                color: arrowColor
-            }}>
-                <ArrowRight size={16} strokeWidth={2.2} />
-            </div>
-        </div>
-    </div>
-);
-
-// Bottom Navigation Item Component
 const NavItem = ({ icon, label, active, onClick }) => (
     <button
         onClick={onClick}
         style={{
-            flex: 1,
+            background: 'none',
+            border: 'none',
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'center',
-            justifyContent: 'center',
-            background: 'transparent',
-            border: 'none',
-            padding: '6px 0',
+            gap: '4px',
+            color: active ? '#E65100' : '#94A3B8',
+            fontSize: '11px',
+            fontWeight: active ? '700' : '500',
             cursor: 'pointer',
-            position: 'relative'
+            padding: '4px 12px'
         }}
     >
-        {active && (
-            <div style={{
-                position: 'absolute',
-                top: '-10px',
-                width: '36px',
-                height: '3px',
-                background: '#E65100',
-                borderRadius: '2px'
-            }} />
-        )}
-        {React.cloneElement(icon, { color: active ? '#E65100' : '#94A3B8', strokeWidth: 2 })}
-        <span style={{
-            fontSize: '11px',
-            marginTop: '4px',
-            color: active ? '#E65100' : '#64748B',
-            fontWeight: active ? '700' : '500'
-        }}>
-            {label}
-        </span>
+        {icon}
+        <span>{label}</span>
     </button>
 );
 
