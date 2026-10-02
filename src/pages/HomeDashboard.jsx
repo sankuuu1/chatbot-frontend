@@ -242,9 +242,14 @@ const HomeDashboard = () => {
                 </div>
             </div>
 
-            {/* --- SUGGESTION CHIPS --- */}
-            <div style={{ padding: '24px 20px 0' }}>
-                <div style={{ display: 'flex', gap: '10px', overflowX: 'auto', paddingBottom: '8px' }}>
+            {/* --- SECTION 1: SUGGESTION CHIPS --- */}
+            <div style={{ marginTop: '20px' }}>
+                <div style={{
+                    display: 'flex',
+                    gap: '10px',
+                    overflowX: 'auto',
+                    padding: '0 20px 10px'
+                }}>
                     <SuggestionChip
                         icon="🌧️"
                         text={t?.suggestions?.rain || "Will it rain today?"}
@@ -261,6 +266,101 @@ const HomeDashboard = () => {
                         onClick={() => navigate('/chat', { state: { query: t?.suggestions?.schemes || "Government schemes?" } })}
                     />
                 </div>
+            </div>
+
+            {/* --- SECTION 2: CATEGORY CARDS GRID --- */}
+            <div style={{ padding: '10px 20px 20px' }}>
+                <div style={{
+                    display: 'grid',
+                    gridTemplateColumns: '1fr 1fr',
+                    gap: '12px'
+                }}>
+                    {/* FARMING CARD - SOFT GREEN TINT */}
+                    <CategoryCard
+                        title={t?.categories?.farming || "Farming"}
+                        subtitle="Crops, pests, mandi prices, advisory"
+                        titleColor="#1B5E20"
+                        cardBg="#F4F8F4"
+                        cardBorder="#E2EFE2"
+                        badgeBg="#E8F5E9"
+                        arrowBg="#C8E6C9"
+                        arrowColor="#1B5E20"
+                        icon={<Sprout size={26} color="#2E7D32" strokeWidth={2} />}
+                        onClick={() => navigate('/chat', { state: { category: 'farming' } })}
+                    />
+
+                    {/* EDUCATION CARD - SOFT BLUE TINT */}
+                    <CategoryCard
+                        title={t?.categories?.education || "Education"}
+                        subtitle="Homework, concepts, math formulas"
+                        titleColor="#0D47A1"
+                        cardBg="#F4F8FC"
+                        cardBorder="#E2EDF8"
+                        badgeBg="#E3F2FD"
+                        arrowBg="#BBDEFB"
+                        arrowColor="#0D47A1"
+                        icon={<BookOpen size={26} color="#1565C0" strokeWidth={2} />}
+                        onClick={() => navigate('/chat', { state: { category: 'education' } })}
+                    />
+
+                    {/* EXPANDED CATEGORIES (HEALTH & HELP) */}
+                    {showAllCategories && (
+                        <>
+                            {/* HEALTH CARD - SOFT PINK TINT */}
+                            <CategoryCard
+                                title={t?.categories?.health || "Health"}
+                                subtitle="Symptoms, first-aid, health tips"
+                                titleColor="#B71C1C"
+                                cardBg="#FFF5F5"
+                                cardBorder="#FDE8E8"
+                                badgeBg="#FFEBEE"
+                                arrowBg="#FFCDD2"
+                                arrowColor="#B71C1C"
+                                icon={<Heart size={26} color="#C62828" strokeWidth={2} />}
+                                onClick={() => navigate('/chat', { state: { category: 'health' } })}
+                            />
+
+                            {/* HELP CARD - SOFT AMBER TINT */}
+                            <CategoryCard
+                                title={t?.categories?.schemes || "Help & Schemes"}
+                                subtitle="Govt schemes, daily help, Q&A"
+                                titleColor="#E65100"
+                                cardBg="#FFFDF0"
+                                cardBorder="#FEF3C7"
+                                badgeBg="#FFF3E0"
+                                arrowBg="#FFE0B2"
+                                arrowColor="#E65100"
+                                icon={<HelpCircle size={26} color="#EF6C00" strokeWidth={2} />}
+                                onClick={() => navigate('/chat', { state: { category: 'help' } })}
+                            />
+                        </>
+                    )}
+                </div>
+
+                {/* TOGGLE BUTTON */}
+                <button
+                    onClick={() => setShowAllCategories(!showAllCategories)}
+                    style={{
+                        width: '100%',
+                        marginTop: '16px',
+                        background: '#FFF8F0',
+                        border: '1px solid #FFE0B2',
+                        borderRadius: '24px',
+                        padding: '12px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: '8px',
+                        color: '#E65100',
+                        fontWeight: '700',
+                        fontSize: '15px',
+                        cursor: 'pointer',
+                        boxShadow: '0 2px 6px rgba(230,81,0,0.04)'
+                    }}
+                >
+                    <span>{showAllCategories ? 'कमी विषय पाहा' : 'सर्व विषय पाहा'}</span>
+                    {showAllCategories ? <ArrowUp size={18} /> : <ArrowRight size={18} />}
+                </button>
             </div>
 
             {/* --- LANGUAGE SELECTION MODAL --- */}
@@ -396,30 +496,100 @@ const SuggestionChip = ({ icon, text, onClick }) => (
             boxShadow: '0 2px 8px rgba(0,0,0,0.02)'
         }}
     >
-        <span>{icon}</span>
+        <span style={{ fontSize: '15px' }}>{icon}</span>
         <span>{text}</span>
     </button>
+);
+
+const CategoryCard = ({ title, subtitle, titleColor, cardBg, cardBorder, badgeBg, arrowBg, arrowColor, icon, onClick }) => (
+    <div
+        onClick={onClick}
+        style={{
+            background: cardBg || 'white',
+            borderRadius: '24px',
+            padding: '18px 16px',
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'space-between',
+            border: `1px solid ${cardBorder || '#EAF0EA'}`,
+            cursor: 'pointer',
+            minHeight: '145px',
+            position: 'relative'
+        }}
+    >
+        <div>
+            <div style={{
+                width: '46px',
+                height: '46px',
+                borderRadius: '50%',
+                background: badgeBg,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                marginBottom: '12px'
+            }}>
+                {icon}
+            </div>
+            <h4 style={{ fontSize: '18px', fontWeight: '800', color: titleColor, marginBottom: '4px', margin: 0 }}>
+                {title}
+            </h4>
+            <p style={{ fontSize: '11px', color: '#64748B', lineHeight: '1.4', fontWeight: '500', marginTop: '4px', margin: 0 }}>
+                {subtitle}
+            </p>
+        </div>
+
+        <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '10px' }}>
+            <div style={{
+                width: '30px',
+                height: '30px',
+                borderRadius: '50%',
+                background: arrowBg,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                color: arrowColor
+            }}>
+                <ArrowRight size={16} strokeWidth={2.2} />
+            </div>
+        </div>
+    </div>
 );
 
 const NavItem = ({ icon, label, active, onClick }) => (
     <button
         onClick={onClick}
         style={{
-            background: 'none',
-            border: 'none',
+            flex: 1,
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'center',
-            gap: '4px',
-            color: active ? '#E65100' : '#94A3B8',
-            fontSize: '11px',
-            fontWeight: active ? '700' : '500',
+            justifyContent: 'center',
+            background: 'transparent',
+            border: 'none',
+            padding: '6px 0',
             cursor: 'pointer',
-            padding: '4px 12px'
+            position: 'relative'
         }}
     >
-        {icon}
-        <span>{label}</span>
+        {active && (
+            <div style={{
+                position: 'absolute',
+                top: '-10px',
+                width: '36px',
+                height: '3px',
+                background: '#E65100',
+                borderRadius: '2px'
+            }} />
+        )}
+        {React.cloneElement(icon, { color: active ? '#E65100' : '#94A3B8', strokeWidth: 2 })}
+        <span style={{
+            fontSize: '11px',
+            marginTop: '4px',
+            color: active ? '#E65100' : '#64748B',
+            fontWeight: active ? '700' : '500'
+        }}>
+            {label}
+        </span>
     </button>
 );
 
