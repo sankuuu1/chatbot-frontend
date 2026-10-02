@@ -62,19 +62,19 @@ const HomeDashboard = () => {
             display: 'flex',
             flexDirection: 'column',
             position: 'relative',
-            paddingBottom: '100px',
+            paddingBottom: '140px',
             fontFamily: "'Noto Sans Devanagari', 'Inter', system-ui, sans-serif"
         }}>
 
             {/* --- TOP HEADER --- */}
             <div style={{
-                padding: '18px 20px 10px',
+                padding: '20px 20px 0px',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'space-between'
             }}>
                 <div style={{
-                    width: '76px',
+                    width: '78px',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'flex-start',
@@ -116,48 +116,34 @@ const HomeDashboard = () => {
                 </button>
             </div>
 
-            {/* --- EMOJI BADGE ABOVE GREETING --- */}
-            <div style={{ padding: '0 20px', marginTop: '10px', textAlign: 'center' }}>
-                <div style={{
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    width: '42px',
-                    height: '42px',
-                    borderRadius: '50%',
-                    background: '#FFF3E0',
-                    marginBottom: '6px'
-                }}>
-                    <span style={{ fontSize: '22px' }}>🙏</span>
-                </div>
-
-                {/* GREETING HEADLINE */}
+            {/* --- GREETING HEADLINE --- */}
+            <div style={{ padding: '0 20px', marginTop: '24px', textAlign: 'center' }}>
                 <h1 style={{
-                    fontSize: '34px',
+                    fontSize: '32px',
                     fontWeight: '900',
                     color: '#111827',
                     margin: 0,
                     letterSpacing: '-0.5px'
                 }}>
-                    {t?.greeting || 'Hello!'}
+                    {t?.greeting || 'नमस्कार! मी बंधू. 🙏'}
                 </h1>
                 <p style={{
                     color: '#4B5563',
-                    marginTop: '6px',
-                    fontSize: '16px',
+                    marginTop: '8px',
+                    fontSize: '15px',
                     fontWeight: '500'
                 }}>
-                    {t?.greetingSub || 'How can I help you today?'}
+                    {t?.greetingSub || 'सांगा, आज मी तुम्हाला कशी मदत करू शकतो?'}
                 </p>
 
-                {/* MIC BUTTON WITH DYNAMIC VOICE WAVES */}
+                {/* MIC BUTTON WITH SPACIOUS GAP */}
                 <div style={{
                     position: 'relative',
-                    height: '180px',
+                    height: '150px',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    margin: '10px 0 4px'
+                    margin: '36px 0 16px'
                 }}>
                     <div className="voice-wave-ring voice-wave-1"></div>
                     <div className="voice-wave-ring voice-wave-2"></div>
@@ -167,8 +153,8 @@ const HomeDashboard = () => {
                         className="mic-pulse-btn"
                         onClick={() => navigate('/chat', { state: { autoListen: true } })}
                         style={{
-                            width: '90px',
-                            height: '90px',
+                            width: '82px',
+                            height: '82px',
                             borderRadius: '50%',
                             background: 'linear-gradient(135deg, #FF6F00 0%, #E65100 100%)',
                             border: '4px solid white',
@@ -180,34 +166,34 @@ const HomeDashboard = () => {
                             cursor: 'pointer'
                         }}
                     >
-                        <Mic size={40} strokeWidth={2.2} />
+                        <Mic size={38} strokeWidth={2.2} />
                     </button>
                 </div>
 
-                <p style={{ fontSize: '13px', color: '#1F2937', fontWeight: '700', marginTop: '2px' }}>
-                    {t?.speakClearly || 'Tap to Speak'}
+                <p style={{ fontSize: '13px', color: '#64748B', fontWeight: '600', marginTop: '4px' }}>
+                    {t?.speakClearly || 'तुमचा प्रश्न स्पष्टपणे बोला'}
                 </p>
             </div>
 
-            {/* --- INPUT / SEARCH BAR WITH CAMERA & MIC ICONS --- */}
-            <div style={{ padding: '0 20px', marginTop: '16px' }}>
+            {/* --- INPUT / SEARCH BAR WITH SPACIOUS GAP --- */}
+            <div style={{ padding: '0 20px', marginTop: '32px' }}>
                 <div
                     onClick={handleInputClick}
                     style={{
                         background: 'white',
-                        borderRadius: '18px',
+                        borderRadius: '20px',
                         border: '1px solid #E5E7EB',
-                        padding: '10px 16px',
+                        padding: '12px 18px',
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'space-between',
-                        boxShadow: '0 3px 12px rgba(0,0,0,0.03)',
+                        boxShadow: '0 4px 14px rgba(0,0,0,0.03)',
                         cursor: 'pointer'
                     }}
                 >
                     <input
                         type="text"
-                        placeholder={t?.askPlaceholder || 'Ask anything...'}
+                        placeholder={t?.askPlaceholder || 'इथे प्रश्न लिहा किंवा विचारा...'}
                         value={searchInput}
                         onChange={(e) => setSearchInput(e.target.value)}
                         onKeyDown={handleSearchSubmit}
@@ -242,34 +228,34 @@ const HomeDashboard = () => {
                 </div>
             </div>
 
-            {/* --- SECTION 1: SUGGESTION CHIPS --- */}
-            <div style={{ marginTop: '20px' }}>
+            {/* --- SECTION 1: SUGGESTION CHIPS WITH SPACIOUS GAP --- */}
+            <div style={{ marginTop: '24px' }}>
                 <div style={{
                     display: 'flex',
                     gap: '10px',
                     overflowX: 'auto',
-                    padding: '0 20px 10px'
+                    padding: '0 20px 4px'
                 }}>
                     <SuggestionChip
                         icon="🌧️"
-                        text={t?.suggestions?.rain || "Will it rain today?"}
-                        onClick={() => navigate('/chat', { state: { query: t?.suggestions?.rain || "Will it rain today?" } })}
+                        text={t?.suggestions?.rain || "आज पाऊस पडेल का?"}
+                        onClick={() => navigate('/chat', { state: { query: t?.suggestions?.rain || "आज पाऊस पडेल का?" } })}
                     />
                     <SuggestionChip
                         icon="📈"
-                        text={t?.suggestions?.cotton || "Cotton market price?"}
-                        onClick={() => navigate('/chat', { state: { query: t?.suggestions?.cotton || "Cotton market price?" } })}
+                        text={t?.suggestions?.cotton || "कापसाचा बाजारभाव?"}
+                        onClick={() => navigate('/chat', { state: { query: t?.suggestions?.cotton || "कापसाचा बाजारभाव?" } })}
                     />
                     <SuggestionChip
                         icon="🏛️"
-                        text={t?.suggestions?.schemes || "Government schemes?"}
-                        onClick={() => navigate('/chat', { state: { query: t?.suggestions?.schemes || "Government schemes?" } })}
+                        text={t?.suggestions?.schemes || "सरकारी योजना कोणती आहे?"}
+                        onClick={() => navigate('/chat', { state: { query: t?.suggestions?.schemes || "सरकारी योजना कोणती आहे?" } })}
                     />
                 </div>
             </div>
 
-            {/* --- SECTION 2: CATEGORY CARDS GRID --- */}
-            <div style={{ padding: '10px 20px 20px' }}>
+            {/* --- SECTION 2: CATEGORY CARDS GRID (Positioned close to suggested questions) --- */}
+            <div style={{ padding: '0 20px 24px', marginTop: '8px' }}>
                 <div style={{
                     display: 'grid',
                     gridTemplateColumns: '1fr 1fr',
@@ -277,8 +263,8 @@ const HomeDashboard = () => {
                 }}>
                     {/* FARMING CARD - SOFT GREEN TINT */}
                     <CategoryCard
-                        title={t?.categories?.farming || "Farming"}
-                        subtitle="Crops, pests, mandi prices, advisory"
+                        title={t?.categories?.farming || "शेती"}
+                        subtitle={t?.categorySubtitles?.farming || "पीक, कीड, बाजारभाव, फवारणी सल्ला"}
                         titleColor="#1B5E20"
                         cardBg="#F4F8F4"
                         cardBorder="#E2EFE2"
@@ -291,8 +277,8 @@ const HomeDashboard = () => {
 
                     {/* EDUCATION CARD - SOFT BLUE TINT */}
                     <CategoryCard
-                        title={t?.categories?.education || "Education"}
-                        subtitle="Homework, concepts, math formulas"
+                        title={t?.categories?.education || "शिक्षण"}
+                        subtitle={t?.categorySubtitles?.education || "अभ्यास, गृहपाठ, प्रश्न व स्पष्टीकरण"}
                         titleColor="#0D47A1"
                         cardBg="#F4F8FC"
                         cardBorder="#E2EDF8"
@@ -308,8 +294,8 @@ const HomeDashboard = () => {
                         <>
                             {/* HEALTH CARD - SOFT PINK TINT */}
                             <CategoryCard
-                                title={t?.categories?.health || "Health"}
-                                subtitle="Symptoms, first-aid, health tips"
+                                title={t?.categories?.health || "आरोग्य"}
+                                subtitle={t?.categorySubtitles?.health || "लक्षणे, प्राथमिक माहिती, आरोग्य सल्ला"}
                                 titleColor="#B71C1C"
                                 cardBg="#FFF5F5"
                                 cardBorder="#FDE8E8"
@@ -322,8 +308,8 @@ const HomeDashboard = () => {
 
                             {/* HELP CARD - SOFT AMBER TINT */}
                             <CategoryCard
-                                title={t?.categories?.schemes || "Help & Schemes"}
-                                subtitle="Govt schemes, daily help, Q&A"
+                                title={t?.categories?.schemes || "मदत व योजना"}
+                                subtitle={t?.categorySubtitles?.schemes || "दैनंदिन प्रश्न, सरकारी माहिती, इतर मदत"}
                                 titleColor="#E65100"
                                 cardBg="#FFFDF0"
                                 cardBorder="#FEF3C7"
@@ -513,20 +499,20 @@ const CategoryCard = ({ title, subtitle, titleColor, cardBg, cardBorder, badgeBg
             justifyContent: 'space-between',
             border: `1px solid ${cardBorder || '#EAF0EA'}`,
             cursor: 'pointer',
-            minHeight: '145px',
+            minHeight: '135px',
             position: 'relative'
         }}
     >
         <div>
             <div style={{
-                width: '46px',
-                height: '46px',
+                width: '44px',
+                height: '44px',
                 borderRadius: '50%',
                 background: badgeBg,
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                marginBottom: '12px'
+                marginBottom: '10px'
             }}>
                 {icon}
             </div>
