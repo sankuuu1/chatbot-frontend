@@ -1,9 +1,44 @@
 import React from 'react';
 
+const DynamicSVGDiagram = ({ diagramType = 'triangle' }) => {
+    const type = (diagramType || 'triangle').toLowerCase();
+
+    if (type === 'circle') {
+        return (
+            <svg width="180" height="140" viewBox="0 0 180 140" style={{ margin: '0 auto', display: 'block' }}>
+                <circle cx="90" cy="70" r="50" fill="#FFF3E0" stroke="#E65100" strokeWidth="3" />
+                <line x1="90" y1="70" x2="140" y2="70" stroke="#E65100" strokeWidth="2" strokeDasharray="4" />
+                <circle cx="90" cy="70" r="4" fill="#E65100" />
+                <text x="105" y="62" fontSize="11" fill="#E65100" fontWeight="bold">त्रिज्या (r)</text>
+            </svg>
+        );
+    }
+
+    if (type === 'rectangle' || type === 'square') {
+        return (
+            <svg width="180" height="140" viewBox="0 0 180 140" style={{ margin: '0 auto', display: 'block' }}>
+                <rect x="30" y="30" width="120" height="80" rx="4" fill="#FFF3E0" stroke="#E65100" strokeWidth="3" />
+                <text x="90" y="125" textAnchor="middle" fontSize="11" fill="#333" fontWeight="bold">लांबी (Length)</text>
+                <text x="15" y="75" fontSize="11" fill="#333" fontWeight="bold" transform="rotate(-90 15,75)">रुंदी (Width)</text>
+            </svg>
+        );
+    }
+
+    // Default: Triangle SVG Diagram
+    return (
+        <svg width="200" height="130" viewBox="0 0 200 130" style={{ margin: '0 auto', display: 'block' }}>
+            <polygon points="100,15 30,105 170,105" fill="#FFF8E1" stroke="#E65100" strokeWidth="3" />
+            <line x1="100" y1="15" x2="100" y2="105" stroke="#E65100" strokeWidth="2" strokeDasharray="4" />
+            <text x="105" y="65" fontSize="11" fill="#E65100" fontWeight="bold">उंची (h)</text>
+            <text x="100" y="122" textAnchor="middle" fontSize="11" fill="#333" fontWeight="bold">पाया (Base)</text>
+        </svg>
+    );
+};
+
 const RichResponseCard = ({ data }) => {
     if (!data) return null;
 
-    // Helper for Education Card (Triangle)
+    // Helper for Education Card
     if (data.type === 'education') {
         return (
             <div style={{ background: 'white', borderRadius: '24px', padding: '24px', boxShadow: '0 4px 15px rgba(0,0,0,0.05)', marginTop: '10px' }}>
@@ -11,66 +46,28 @@ const RichResponseCard = ({ data }) => {
                     {data.title}
                 </h3>
 
-                {/* Visual Diagram Placeholder */}
-                <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '20px', position: 'relative', height: '120px' }}>
-                    {/* CSS Triangle */}
-                    <div style={{
-                        width: 0,
-                        height: 0,
-                        borderLeft: '60px solid transparent',
-                        borderRight: '60px solid transparent',
-                        borderBottom: '100px solid white',
-                        borderBottomColor: '#FFF8E1',
-                        position: 'relative'
-                    }}>
-                        {/* Outline */}
-                        <div style={{
-                            position: 'absolute',
-                            top: '0px',
-                            left: '-60px',
-                            width: 0,
-                            height: 0,
-                            borderLeft: '60px solid transparent',
-                            borderRight: '60px solid transparent',
-                            borderBottom: '100px solid #333',
-                            zIndex: -1
-                        }}></div>
-
-                        {/* Dashed Height Line */}
-                        <div style={{
-                            position: 'absolute',
-                            left: '0px',
-                            top: '5px',
-                            height: '95px',
-                            borderLeft: '2px dashed #e67e22',
-                            zIndex: 2
-                        }}></div>
-
-                        {/* Height Label */}
-                        <div style={{ position: 'absolute', top: '40px', left: '5px', background: 'white', padding: '2px 5px', fontSize: '10px', color: '#e67e22', fontWeight: 'bold' }}>
-                            उंची (Height)
-                        </div>
-
-                        {/* Base Label */}
-                        <div style={{ position: 'absolute', bottom: '-20px', left: '-30px', width: '60px', textAlign: 'center', fontSize: '10px', fontWeight: 'bold', color: '#333' }}>
-                            पाया (Base)
-                        </div>
-                    </div>
+                {/* SVG Visual Diagram */}
+                <div style={{ marginBottom: '20px' }}>
+                    <DynamicSVGDiagram diagramType={data.diagram_type} />
                 </div>
 
                 {/* Formula Box */}
-                <div style={{ background: '#FFF3E0', borderRadius: '12px', padding: '15px', marginBottom: '20px', textAlign: 'center' }}>
-                    <p style={{ fontSize: '12px', color: '#e67e22', fontWeight: 'bold', marginBottom: '5px' }}>सूत्र (FORMULA)</p>
-                    <p style={{ fontSize: '20px', fontWeight: 'bold', color: '#333' }}>{data.formula}</p>
-                </div>
+                {data.formula && (
+                    <div style={{ background: '#FFF3E0', borderRadius: '12px', padding: '15px', marginBottom: '20px', textAlign: 'center' }}>
+                        <p style={{ fontSize: '12px', color: '#e67e22', fontWeight: 'bold', marginBottom: '5px' }}>सूत्र (FORMULA)</p>
+                        <p style={{ fontSize: '20px', fontWeight: 'bold', color: '#333' }}>{data.formula}</p>
+                    </div>
+                )}
 
-                <div style={{ fontSize: '13px', color: '#555', lineHeight: '1.6' }}>
-                    {data.content.map((item, idx) => (
-                        <p key={idx} style={{ marginBottom: '8px' }}>
-                            <strong>{idx + 1}. {item.label}:</strong> {item.desc}
-                        </p>
-                    ))}
-                </div>
+                {data.content && (
+                    <div style={{ fontSize: '13px', color: '#555', lineHeight: '1.6' }}>
+                        {data.content.map((item, idx) => (
+                            <p key={idx} style={{ marginBottom: '8px' }}>
+                                <strong>{idx + 1}. {item.label}:</strong> {item.desc}
+                            </p>
+                        ))}
+                    </div>
+                )}
 
                 <div style={{ marginTop: '15px', background: '#F5F5F5', padding: '10px', borderRadius: '8px', fontSize: '11px', color: '#777', display: 'flex', gap: '8px' }}>
                     <span>ℹ️</span>
@@ -85,11 +82,13 @@ const RichResponseCard = ({ data }) => {
         return (
             <div style={{ background: 'white', borderRadius: '24px', padding: '24px', boxShadow: '0 4px 15px rgba(0,0,0,0.05)', marginTop: '10px' }}>
                 <h2 style={{ fontSize: '20px', fontWeight: 'bold', marginBottom: '15px', color: '#2ecc71' }}>{data.title}</h2>
-                <ul style={{ paddingLeft: '20px', marginBottom: '20px', color: '#333', lineHeight: '1.6' }}>
-                    {data.points.map((pt, i) => (
-                        <li key={i} style={{ marginBottom: '10px' }}>{pt}</li>
-                    ))}
-                </ul>
+                {data.points && (
+                    <ul style={{ paddingLeft: '20px', marginBottom: '20px', color: '#333', lineHeight: '1.6' }}>
+                        {data.points.map((pt, i) => (
+                            <li key={i} style={{ marginBottom: '10px' }}>{pt}</li>
+                        ))}
+                    </ul>
+                )}
                 <div style={{ marginTop: '20px', background: '#E8F5E9', border: '1px solid #C8E6C9', borderRadius: '16px', padding: '15px', display: 'flex', gap: '10px' }}>
                     <span>ℹ️</span>
                     <p style={{ fontSize: '12px', color: '#2e7d32', lineHeight: '1.4' }}>
@@ -100,16 +99,21 @@ const RichResponseCard = ({ data }) => {
         );
     }
 
-    // Default / Health
+    // Default / Health Card
     if (data.type === 'health') {
         return (
             <div style={{ background: 'white', borderRadius: '24px', padding: '24px', boxShadow: '0 4px 15px rgba(0,0,0,0.05)', marginTop: '10px' }}>
                 <h2 style={{ fontSize: '20px', fontWeight: 'bold', marginBottom: '15px', color: '#e74c3c' }}>{data.title}</h2>
-                <ul style={{ paddingLeft: '20px', color: '#333', lineHeight: '1.6' }}>
-                    {data.points.map((pt, i) => (
-                        <li key={i} style={{ marginBottom: '10px' }}>{pt}</li>
-                    ))}
-                </ul>
+                {data.points && (
+                    <ul style={{ paddingLeft: '20px', color: '#333', lineHeight: '1.6' }}>
+                        {data.points.map((pt, i) => (
+                            <li key={i} style={{ marginBottom: '10px' }}>{pt}</li>
+                        ))}
+                    </ul>
+                )}
+                <div style={{ marginTop: '15px', background: '#FFEBEE', border: '1px solid #FFCDD2', borderRadius: '12px', padding: '12px', fontSize: '11px', color: '#C62828' }}>
+                    ⚠️ टीप: गंभीर आजार किंवा तातडीच्या प्रसंगी त्वरित प्राथमिक आरोग्य केंद्र किंवा डॉक्टरांचा सल्ला घ्या.
+                </div>
             </div>
         );
     }

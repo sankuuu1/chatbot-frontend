@@ -1,19 +1,21 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { X, Mic, Camera, ChevronRight, Info, Settings, Home, MessageSquare, ArrowLeft, Volume2 } from 'lucide-react';
+import { X, Mic, ChevronRight, MessageSquare, ArrowLeft } from 'lucide-react';
 import RichResponseCard from '../components/RichResponseCard';
+import { fetchChatResponse, transcribeAudioBlob } from '../services/api';
 
 const ChatInterface = () => {
-    const API_URL = import.meta.env.VITE_API_URL || 'https://chatbot-backend-1-nhq4.onrender.com';
     const navigate = useNavigate();
     const location = useLocation();
     const category = location.state?.category || 'general';
 
     const [input, setInput] = useState('');
     const [history, setHistory] = useState([]);
-    const [viewState, setViewState] = useState('IDLE'); // IDLE, LISTENING, THINKING, RESPONSE
+    const [viewState, setViewState] = useState('IDLE'); // IDLE, LISTENING, THINKING
     const [richData, setRichData] = useState(null);
     const [recognitionRef, setRecognitionRef] = useState(null);
+    const [mediaRecorderRef, setMediaRecorderRef] = useState(null);
+    const [audioChunks, setAudioChunks] = useState([]);
     const [transcriptAccumulated, setTranscriptAccumulated] = useState('');
     const messagesEndRef = useRef(null);
 
@@ -25,7 +27,6 @@ const ChatInterface = () => {
         scrollToBottom();
     }, [history, viewState, richData]);
 
-    // Handle autoListen or query from navigation state
     useEffect(() => {
         if (location.state?.autoListen) {
             startListening();
@@ -45,88 +46,119 @@ const ChatInterface = () => {
         setRichData(null);
 
         try {
-            const response = await fetch(`${API_URL}/chat`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ message: userText, category: category })
-            });
-            const data = await response.json();
-
-            const aiMsg = { sender: 'ai', text: data.response };
+            const data = await fetchChatResponse(userText, category, history);
+            const aiMsg = { sender: 'ai', text: data.response || 'उत्तरामध्ये समस्या आली.' };
             setHistory(prev => [...prev, aiMsg]);
             if (data.rich_data) {
                 setRichData(data.rich_data);
             }
         } catch (error) {
             console.error(error);
-            setHistory(prev => [...prev, { sender: 'ai', text: `⚠️ एरर: ${error.message}. (Backend not connected?)` }]);
+            setHistory(prev => [...prev, { sender: 'ai', text: `⚠️ एरर: ${error.message}` }]);
         } finally {
             setViewState('IDLE');
         }
     };
 
     const startListening = () => {
-        if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
-            alert("तुमच्या ब्राऊजरमध्ये आवाजाची सुविधा उपलब्ध नाही. कृपया क्रोम ब्राऊजर वापरा.");
+        setViewState('LISTENING');
+        setTranscriptAccumulated('');
+
+        // 1. Try browser Native Speech Recognition (Chrome/Android)
+        if (('webkitSpeechRecognition' in window) || ('SpeechRecognition' in window)) {
+            try {
+                const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+                const recognition = new SpeechRecognition();
+                recognition.lang = 'mr-IN';
+                recognition.continuous = true;
+                recognition.interimResults = true;
+
+                setRecognitionRef(recognition);
+
+                recognition.onresult = (event) => {
+                    let currentText = '';
+                    for (let i = event.resultIndex; i < event.results.length; ++i) {
+                        currentText += event.results[i][0].transcript;
+                    }
+                    if (currentText) {
+                        setTranscriptAccumulated(currentText);
+                    }
+                };
+
+                recognition.onerror = (err) => {
+                    console.warn('Native speech recognition error, falling back to MediaRecorder...', err);
+                    startMediaRecorderFallback();
+                };
+
+                recognition.start();
+                return;
+            } catch (e) {
+                console.warn('SpeechRecognition failed, falling back to MediaRecorder', e);
+            }
+        }
+
+        // 2. Fallback: Standard MediaRecorder + Groq Whisper API backend
+        startMediaRecorderFallback();
+    };
+
+    const startMediaRecorderFallback = () => {
+        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+            alert("तुमच्या ब्राऊजरमध्ये आवाजाची सुविधा उपलब्ध नाही.");
+            setViewState('IDLE');
             return;
         }
 
-        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-        const recognition = new SpeechRecognition();
-        recognition.lang = 'mr-IN'; // Marathi
-        recognition.continuous = true;
-        recognition.interimResults = true;
+        navigator.mediaDevices.getUserMedia({ audio: true })
+            .then((stream) => {
+                const mediaRecorder = new MediaRecorder(stream);
+                setMediaRecorderRef(mediaRecorder);
+                const chunks = [];
 
-        setViewState('LISTENING');
-        setTranscriptAccumulated('');
-        setRecognitionRef(recognition);
+                mediaRecorder.ondataavailable = (e) => {
+                    if (e.data.size > 0) chunks.push(e.data);
+                };
 
-        recognition.onstart = () => {
-            console.log("Voice recognition started...");
-        };
+                mediaRecorder.onstop = async () => {
+                    stream.getTracks().forEach(track => track.stop());
+                    const audioBlob = new Blob(chunks, { type: 'audio/webm' });
+                    setViewState('THINKING');
+                    try {
+                        const result = await transcribeAudioBlob(audioBlob);
+                        if (result.text && result.text.trim()) {
+                            setTranscriptAccumulated(result.text);
+                            handleSend(result.text);
+                        } else {
+                            setViewState('IDLE');
+                        }
+                    } catch (err) {
+                        console.error('Whisper STT failed:', err);
+                        alert('आवाज ऐकण्यात समस्या आली. (Speech transcription error)');
+                        setViewState('IDLE');
+                    }
+                };
 
-        recognition.onresult = (event) => {
-            let finalTranscript = '';
-            let interimTranscript = '';
-            for (let i = event.resultIndex; i < event.results.length; ++i) {
-                if (event.results[i].isFinal) {
-                    finalTranscript += event.results[i][0].transcript;
-                } else {
-                    interimTranscript += event.results[i][0].transcript;
-                }
-            }
-            const currentText = finalTranscript || interimTranscript;
-            if (currentText) {
-                setTranscriptAccumulated(currentText);
-            }
-        };
-
-        recognition.onerror = (event) => {
-            console.error("Speech recognition error", event.error);
-        };
-
-        recognition.onend = () => {
-        };
-
-        try {
-            recognition.start();
-        } catch (e) {
-            console.error("Error starting recognition:", e);
-        }
+                mediaRecorder.start();
+            })
+            .catch((err) => {
+                console.error("Microphone access denied:", err);
+                alert("मायक्रोफोन परवानगी नाकारली गेली.");
+                setViewState('IDLE');
+            });
     };
 
     const stopListening = () => {
         if (recognitionRef) {
-            try {
-                recognitionRef.stop();
-            } catch (e) {
-                console.error(e);
-            }
+            try { recognitionRef.stop(); } catch (e) { }
             setRecognitionRef(null);
-        }
-        setViewState('IDLE');
-        if (transcriptAccumulated && transcriptAccumulated.trim()) {
-            handleSend(transcriptAccumulated.trim());
+            setViewState('IDLE');
+            if (transcriptAccumulated && transcriptAccumulated.trim()) {
+                handleSend(transcriptAccumulated.trim());
+            }
+        } else if (mediaRecorderRef && mediaRecorderRef.state !== 'inactive') {
+            try { mediaRecorderRef.stop(); } catch (e) { }
+            setMediaRecorderRef(null);
+        } else {
+            setViewState('IDLE');
         }
     };
 
@@ -140,7 +172,7 @@ const ChatInterface = () => {
             fontFamily: "'Noto Sans Devanagari', 'Inter', sans-serif"
         }}>
 
-            {/* --- ANIMATED VOICE LISTENING OVERLAY --- */}
+            {/* --- VOICE LISTENING OVERLAY --- */}
             {viewState === 'LISTENING' && (
                 <div style={{
                     position: 'fixed',
@@ -153,7 +185,6 @@ const ChatInterface = () => {
                     justifyContent: 'space-between',
                     padding: '40px 20px 60px'
                 }}>
-                    {/* Header */}
                     <div style={{ textAlign: 'center', marginTop: '20px' }}>
                         <span style={{
                             background: '#FFE0B2',
@@ -175,7 +206,6 @@ const ChatInterface = () => {
                         </p>
                     </div>
 
-                    {/* Center Animated Mic Pulse */}
                     <div style={{
                         position: 'relative',
                         width: '160px',
@@ -185,10 +215,6 @@ const ChatInterface = () => {
                         justifyContent: 'center',
                         margin: '20px 0'
                     }}>
-                        <div className="voice-wave-ring voice-wave-1"></div>
-                        <div className="voice-wave-ring voice-wave-2"></div>
-                        <div className="voice-wave-ring voice-wave-3"></div>
-
                         <div style={{
                             width: '100px',
                             height: '100px',
@@ -206,27 +232,7 @@ const ChatInterface = () => {
                         </div>
                     </div>
 
-                    {/* Real-time Equalizer Waveform & Live Transcript */}
                     <div style={{ width: '100%', maxWidth: '340px', textAlign: 'center' }}>
-                        <div style={{
-                            display: 'flex',
-                            gap: '6px',
-                            height: '40px',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            marginBottom: '16px'
-                        }}>
-                            {[1, 2, 3, 4, 5, 6, 7].map(i => (
-                                <div key={i} style={{
-                                    width: '6px',
-                                    background: '#E65100',
-                                    borderRadius: '3px',
-                                    animation: `wave 1s infinite ${i * 0.12}s`
-                                }}></div>
-                            ))}
-                        </div>
-
-                        {/* Transcript Preview Box */}
                         <div style={{
                             background: 'white',
                             border: '1px solid #FFE0B2',
@@ -250,7 +256,6 @@ const ChatInterface = () => {
                         </div>
                     </div>
 
-                    {/* Done Speaking Action Button */}
                     <button
                         onClick={stopListening}
                         style={{
@@ -274,8 +279,7 @@ const ChatInterface = () => {
                 </div>
             )}
 
-
-            {/* --- MAIN CHAT HEADER --- */}
+            {/* --- HEADER --- */}
             <div style={{
                 padding: '15px 20px',
                 background: '#E65100',
@@ -292,9 +296,6 @@ const ChatInterface = () => {
                     >
                         <ArrowLeft size={18} />
                     </button>
-                    <div style={{ width: '36px', height: '36px', borderRadius: '50%', background: 'white', padding: '2px', overflow: 'hidden' }}>
-                        <img src="https://ui-avatars.com/api/?name=Bandhu&background=random" alt="Bandhu Profile" style={{ width: '100%', height: '100%', borderRadius: '50%' }} />
-                    </div>
                     <div>
                         <h3 style={{ fontSize: '16px', fontWeight: '800', margin: 0, lineHeight: '1.2' }}>बंधू (Bandhu) 🙏</h3>
                         <p style={{ fontSize: '11px', opacity: 0.9, margin: 0 }}>
@@ -313,8 +314,7 @@ const ChatInterface = () => {
                 </button>
             </div>
 
-
-            {/* --- CONTENT / CHAT STREAM AREA --- */}
+            {/* --- CHAT STREAM --- */}
             <div style={{
                 padding: '20px',
                 paddingBottom: '110px',
@@ -323,8 +323,6 @@ const ChatInterface = () => {
                 display: 'flex',
                 flexDirection: 'column'
             }}>
-
-                {/* Empty State Welcome */}
                 {history.length === 0 && !richData && (
                     <div style={{ textAlign: 'center', marginTop: '60px', color: '#6B7280' }}>
                         <div style={{
@@ -348,7 +346,6 @@ const ChatInterface = () => {
                     </div>
                 )}
 
-                {/* Chat History Stream */}
                 {history.map((msg, idx) => (
                     <div key={idx} style={{
                         alignSelf: msg.sender === 'user' ? 'flex-end' : 'flex-start',
@@ -370,7 +367,6 @@ const ChatInterface = () => {
                     </div>
                 ))}
 
-                {/* IN-CHAT WHATSAPP-STYLE TYPING INDICATOR BUBBLE */}
                 {viewState === 'THINKING' && (
                     <div style={{
                         alignSelf: 'flex-start',
@@ -385,17 +381,11 @@ const ChatInterface = () => {
                         gap: '8px'
                     }}>
                         <span style={{ fontSize: '13px', color: '#666', fontWeight: '600' }}>
-                            बंधू टाईप करत आहेत
+                            बंधू टाईप करत आहेत...
                         </span>
-                        <div style={{ display: 'flex', gap: '4px', alignItems: 'center' }}>
-                            <div className="typing-dot"></div>
-                            <div className="typing-dot"></div>
-                            <div className="typing-dot"></div>
-                        </div>
                     </div>
                 )}
 
-                {/* Rich Response Component Display */}
                 {richData && (
                     <div className="ani-fade-in" style={{ marginBottom: '16px' }}>
                         <RichResponseCard data={richData} />
@@ -405,8 +395,7 @@ const ChatInterface = () => {
                 <div ref={messagesEndRef} />
             </div>
 
-
-            {/* --- BOTTOM CHAT INPUT BAR & NAVIGATION --- */}
+            {/* --- BOTTOM CHAT INPUT BAR --- */}
             <div style={{
                 position: 'fixed',
                 bottom: 0,
@@ -418,16 +407,13 @@ const ChatInterface = () => {
                 borderTop: '1px solid #F3F4F6',
                 zIndex: 30
             }}>
-                {/* Suggestion Chips */}
                 <div style={{ display: 'flex', gap: '8px', padding: '10px 16px 6px', overflowX: 'auto' }}>
                     <SuggestionPill text="आज पाऊस पडेल का?" onClick={() => handleSend("आज पाऊस पडेल का?")} />
                     <SuggestionPill text="कापसाचा बाजारभाव?" onClick={() => handleSend("कापसाचा बाजारभाव?")} />
                     <SuggestionPill text="सरकारी योजना?" onClick={() => handleSend("सरकारी योजना?")} />
                 </div>
 
-                {/* Input Controls */}
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '6px 16px 10px' }}>
-                    {/* Voice Mic Button */}
                     <button
                         onClick={startListening}
                         style={{
@@ -447,7 +433,6 @@ const ChatInterface = () => {
                         <Mic size={22} strokeWidth={2.2} />
                     </button>
 
-                    {/* Text Input Box */}
                     <div style={{
                         flex: 1,
                         background: 'white',
@@ -478,7 +463,6 @@ const ChatInterface = () => {
                         />
                     </div>
 
-                    {/* Send Button */}
                     {input.trim() && (
                         <button
                             onClick={() => handleSend()}
