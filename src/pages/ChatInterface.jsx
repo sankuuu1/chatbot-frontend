@@ -1,8 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { X, Mic, ChevronRight, MessageSquare, ArrowLeft, Square, RefreshCw } from 'lucide-react';
+import { X, Mic, ChevronRight, MessageSquare, ArrowLeft, Square, RefreshCw, Volume2, VolumeX, Copy, Check, Share2 } from 'lucide-react';
 import RichResponseCard from '../components/RichResponseCard';
 import { fetchChatResponse, transcribeAudioBlob } from '../services/api';
+import { speakIndicText, stopSpeech } from '../services/ttsService';
 import { useChat } from '../context/ChatContext';
 import { useAuth } from '../context/AuthContext';
 import { saveChatTurnToFirestore, logCustomEvent } from '../services/firebase';
@@ -21,6 +22,8 @@ const ChatInterface = () => {
     const [transcriptAccumulated, setTranscriptAccumulated] = useState('');
     const [audioVolume, setAudioVolume] = useState(0); // 0 to 100
     const [recordingSeconds, setRecordingSeconds] = useState(0);
+    const [speakingMsgIndex, setSpeakingMsgIndex] = useState(null);
+    const [copiedIndex, setCopiedIndex] = useState(null);
 
     const messagesEndRef = useRef(null);
     const mediaRecorderRef = useRef(null);
@@ -52,6 +55,8 @@ const ChatInterface = () => {
     }, [location.state]);
 
     const cleanupAudio = () => {
+        stopSpeech();
+        setSpeakingMsgIndex(null);
         if (timerIntervalRef.current) {
             clearInterval(timerIntervalRef.current);
             timerIntervalRef.current = null;
@@ -73,6 +78,33 @@ const ChatInterface = () => {
             audioContextRef.current = null;
         }
         setAudioVolume(0);
+    };
+
+    const handleToggleSpeak = (idx, text) => {
+        if (speakingMsgIndex === idx) {
+            stopSpeech();
+            setSpeakingMsgIndex(null);
+        } else {
+            setSpeakingMsgIndex(idx);
+            speakIndicText({
+                text,
+                language,
+                onStart: () => setSpeakingMsgIndex(idx),
+                onEnd: () => setSpeakingMsgIndex(null),
+                onError: () => setSpeakingMsgIndex(null)
+            });
+        }
+    };
+
+    const handleCopy = (idx, text) => {
+        navigator.clipboard?.writeText(text);
+        setCopiedIndex(idx);
+        setTimeout(() => setCopiedIndex(null), 2000);
+    };
+
+    const handleShare = (text) => {
+        const shareText = `*बंधू AI सल्ला:*\n\n${text}\n\n👉 https://bandhu-ai-566ed.web.app`;
+        window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(shareText)}`, '_blank');
     };
 
     const handleSend = async (text = input) => {
@@ -637,26 +669,134 @@ const ChatInterface = () => {
                     </div>
                 )}
 
-                {history.map((msg, idx) => (
-                    <div key={idx} style={{
-                        alignSelf: msg.sender === 'user' ? 'flex-end' : 'flex-start',
-                        background: msg.sender === 'user' ? '#FFE0B2' : 'white',
-                        color: '#111827',
-                        padding: '12px 18px',
-                        borderRadius: '18px',
-                        borderBottomRightRadius: msg.sender === 'user' ? '4px' : '18px',
-                        borderBottomLeftRadius: msg.sender === 'user' ? '18px' : '4px',
-                        marginBottom: '12px',
-                        maxWidth: '85%',
-                        marginLeft: msg.sender === 'user' ? 'auto' : 0,
-                        boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
-                        fontSize: '15px',
-                        lineHeight: '1.5',
-                        fontWeight: '500'
-                    }}>
-                        {msg.text}
-                    </div>
-                ))}
+                {history.map((msg, idx) => {
+                    const isAi = msg.sender === 'ai';
+                    const isSpeaking = speakingMsgIndex === idx;
+                    const isCopied = copiedIndex === idx;
+
+                    return (
+                        <div key={idx} style={{
+                            alignSelf: isAi ? 'flex-start' : 'flex-end',
+                            maxWidth: '88%',
+                            marginBottom: '14px',
+                            marginLeft: isAi ? 0 : 'auto'
+                        }}>
+                            <div style={{
+                                background: isAi ? 'white' : '#FFE0B2',
+                                color: '#111827',
+                                padding: '12px 18px',
+                                borderRadius: '18px',
+                                borderBottomRightRadius: isAi ? '18px' : '4px',
+                                borderBottomLeftRadius: isAi ? '4px' : '18px',
+                                boxShadow: isAi ? '0 2px 10px rgba(0,0,0,0.05)' : '0 2px 8px rgba(230,81,0,0.1)',
+                                border: isAi ? '1px solid #F3F4F6' : 'none',
+                                fontSize: '15px',
+                                lineHeight: '1.5',
+                                fontWeight: '500',
+                                whiteSpace: 'pre-wrap'
+                            }}>
+                                {msg.text}
+                            </div>
+
+                            {/* --- AI ACTION TOOLBAR (TTS Audio, Copy, Share) --- */}
+                            {isAi && (
+                                <div style={{
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: '8px',
+                                    marginTop: '6px',
+                                    paddingLeft: '4px'
+                                }}>
+                                    {/* Voice Read Aloud Button */}
+                                    <button
+                                        onClick={() => handleToggleSpeak(idx, msg.text)}
+                                        style={{
+                                            background: isSpeaking ? '#FFE0B2' : '#F9FAFB',
+                                            border: isSpeaking ? '1px solid #E65100' : '1px solid #E5E7EB',
+                                            borderRadius: '16px',
+                                            padding: '4px 10px',
+                                            display: 'inline-flex',
+                                            alignItems: 'center',
+                                            gap: '5px',
+                                            cursor: 'pointer',
+                                            fontSize: '12px',
+                                            fontWeight: '700',
+                                            color: isSpeaking ? '#E65100' : '#4B5563',
+                                            transition: 'all 0.15s ease'
+                                        }}
+                                        title={isSpeaking ? "थांबवा (Stop)" : "आवाज ऐका (Listen)"}
+                                    >
+                                        {isSpeaking ? (
+                                            <>
+                                                <VolumeX size={14} color="#E65100" />
+                                                <span>थांबवा</span>
+                                                <span style={{
+                                                    display: 'inline-flex',
+                                                    gap: '2px',
+                                                    alignItems: 'center',
+                                                    marginLeft: '2px'
+                                                }}>
+                                                    <span style={{ width: '3px', height: '10px', backgroundColor: '#E65100', borderRadius: '1px', animation: 'pulse 0.6s infinite' }} />
+                                                    <span style={{ width: '3px', height: '14px', backgroundColor: '#E65100', borderRadius: '1px', animation: 'pulse 0.8s infinite' }} />
+                                                    <span style={{ width: '3px', height: '8px', backgroundColor: '#E65100', borderRadius: '1px', animation: 'pulse 0.5s infinite' }} />
+                                                </span>
+                                            </>
+                                        ) : (
+                                            <>
+                                                <Volume2 size={14} color="#E65100" />
+                                                <span>{language === 'mr' ? 'आवाज ऐका' : language === 'hi' ? 'आवाज़ सुनें' : 'Listen'}</span>
+                                            </>
+                                        )}
+                                    </button>
+
+                                    {/* Copy Button */}
+                                    <button
+                                        onClick={() => handleCopy(idx, msg.text)}
+                                        style={{
+                                            background: '#F9FAFB',
+                                            border: '1px solid #E5E7EB',
+                                            borderRadius: '16px',
+                                            padding: '4px 8px',
+                                            display: 'inline-flex',
+                                            alignItems: 'center',
+                                            gap: '4px',
+                                            cursor: 'pointer',
+                                            fontSize: '11px',
+                                            fontWeight: '600',
+                                            color: isCopied ? '#16A34A' : '#6B7280'
+                                        }}
+                                        title="Copy message"
+                                    >
+                                        {isCopied ? <Check size={13} color="#16A34A" /> : <Copy size={13} />}
+                                        <span>{isCopied ? (language === 'mr' ? 'कॉपी झाले' : 'Copied') : (language === 'mr' ? 'कॉपी' : 'Copy')}</span>
+                                    </button>
+
+                                    {/* WhatsApp Share Button */}
+                                    <button
+                                        onClick={() => handleShare(msg.text)}
+                                        style={{
+                                            background: '#F9FAFB',
+                                            border: '1px solid #E5E7EB',
+                                            borderRadius: '16px',
+                                            padding: '4px 8px',
+                                            display: 'inline-flex',
+                                            alignItems: 'center',
+                                            gap: '4px',
+                                            cursor: 'pointer',
+                                            fontSize: '11px',
+                                            fontWeight: '600',
+                                            color: '#059669'
+                                        }}
+                                        title="Share on WhatsApp"
+                                    >
+                                        <Share2 size={13} color="#059669" />
+                                        <span>{language === 'mr' ? 'शेअर' : 'Share'}</span>
+                                    </button>
+                                </div>
+                            )}
+                        </div>
+                    );
+                })}
 
                 {viewState === 'THINKING' && (
                     <div style={{
