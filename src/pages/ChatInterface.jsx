@@ -4,12 +4,15 @@ import { X, Mic, ChevronRight, MessageSquare, ArrowLeft } from 'lucide-react';
 import RichResponseCard from '../components/RichResponseCard';
 import { fetchChatResponse, transcribeAudioBlob } from '../services/api';
 import { useChat } from '../context/ChatContext';
+import { useAuth } from '../context/AuthContext';
+import { saveChatTurnToFirestore, logCustomEvent } from '../services/firebase';
 
 const ChatInterface = () => {
     const navigate = useNavigate();
     const location = useLocation();
     const category = location.state?.category || 'general';
     const { language, t } = useChat();
+    const { user } = useAuth();
 
     const [input, setInput] = useState('');
     const [history, setHistory] = useState([]);
@@ -53,6 +56,17 @@ const ChatInterface = () => {
             if (data.rich_data) {
                 setRichData(data.rich_data);
             }
+
+            // Sync to Google Cloud Firestore & log Analytics Event
+            if (user?.uid) {
+                saveChatTurnToFirestore(user.uid, {
+                    userMessage: userText,
+                    aiResponse: data.response,
+                    category,
+                    language
+                });
+            }
+            logCustomEvent('chat_message_sent', { category, language });
         } catch (error) {
             console.error(error);
             setHistory(prev => [...prev, { sender: 'ai', text: `⚠️ Error: ${error.message}` }]);

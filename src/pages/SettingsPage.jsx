@@ -21,14 +21,16 @@ import {
     Phone,
     Shield
 } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
 
 const SettingsPage = () => {
     const navigate = useNavigate();
+    const { user, login, logout } = useAuth();
     const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
     const [settings, setSettings] = useState({
-        name: 'संतोष जाधव',
-        phone: '+919876543210',
+        name: user?.displayName || 'संतोष जाधव',
+        phone: user?.email || '+919876543210',
         speech_speed: 1.0,
         auto_play_speech: true,
         notifications_enabled: true,
@@ -131,7 +133,8 @@ const SettingsPage = () => {
         window.speechSynthesis.speak(utterance);
     };
 
-    const handleLogout = () => {
+    const handleLogout = async () => {
+        await logout();
         navigate('/login');
     };
 
@@ -209,27 +212,68 @@ const SettingsPage = () => {
                     border: '1px solid #F3F4F6'
                 }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
-                        <div style={{
-                            width: '60px',
-                            height: '60px',
-                            borderRadius: '50%',
-                            background: '#D35400',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            color: 'white',
-                            boxShadow: '0 4px 10px rgba(211,84,0,0.25)',
-                            flexShrink: 0
-                        }}>
-                            <User size={30} />
-                        </div>
+                        {user?.photoURL ? (
+                            <img
+                                src={user.photoURL}
+                                alt="Profile"
+                                style={{
+                                    width: '60px',
+                                    height: '60px',
+                                    borderRadius: '50%',
+                                    objectFit: 'cover',
+                                    boxShadow: '0 4px 10px rgba(0,0,0,0.1)',
+                                    border: '2px solid #E65100',
+                                    flexShrink: 0
+                                }}
+                            />
+                        ) : (
+                            <div style={{
+                                width: '60px',
+                                height: '60px',
+                                borderRadius: '50%',
+                                background: '#D35400',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                color: 'white',
+                                boxShadow: '0 4px 10px rgba(211,84,0,0.25)',
+                                flexShrink: 0
+                            }}>
+                                <User size={30} />
+                            </div>
+                        )}
                         <div>
-                            <h3 style={{ fontSize: '18px', fontWeight: '800', color: '#111827', marginBottom: '4px' }}>
-                                {settings.name}
-                            </h3>
-                            <p style={{ fontSize: '13px', color: '#6B7280', fontWeight: '500' }}>
-                                {settings.phone}
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                <h3 style={{ fontSize: '18px', fontWeight: '800', color: '#111827', margin: 0 }}>
+                                    {user?.displayName || settings.name}
+                                </h3>
+                                {user && (
+                                    <span style={{ fontSize: '11px', background: '#DCFCE7', color: '#15803D', padding: '2px 8px', borderRadius: '10px', fontWeight: '700' }}>
+                                        Google Verified
+                                    </span>
+                                )}
+                            </div>
+                            <p style={{ fontSize: '13px', color: '#6B7280', fontWeight: '500', marginTop: '4px', margin: 0 }}>
+                                {user?.email || settings.phone}
                             </p>
+                            {!user && (
+                                <button
+                                    onClick={login}
+                                    style={{
+                                        background: '#FFF8F0',
+                                        border: '1px solid #FFE0B2',
+                                        color: '#E65100',
+                                        fontSize: '12px',
+                                        fontWeight: '700',
+                                        borderRadius: '12px',
+                                        padding: '4px 10px',
+                                        marginTop: '6px',
+                                        cursor: 'pointer'
+                                    }}
+                                >
+                                    + Google खात्याशी जोडा
+                                </button>
+                            )}
                         </div>
                     </div>
 
