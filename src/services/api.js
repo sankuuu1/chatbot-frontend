@@ -49,14 +49,27 @@ export const transcribeAudioBlob = async (audioBlob, language = 'mr') => {
     formData.append('file', audioBlob, 'speech.webm');
     formData.append('language', language);
 
-    const res = await fetch(`${API_BASE_URL}/api/transcribe`, {
-        method: 'POST',
-        body: formData,
-    });
-    if (!res.ok) {
-        throw new Error('Voice transcription failed');
+    try {
+        const res = await fetch(`${API_BASE_URL}/api/transcribe`, {
+            method: 'POST',
+            body: formData,
+        });
+        if (!res.ok && API_BASE_URL !== PRODUCTION_FALLBACK) {
+            const fallbackRes = await fetch(`${PRODUCTION_FALLBACK}/api/transcribe`, {
+                method: 'POST',
+                body: formData,
+            });
+            return await fallbackRes.json();
+        }
+        return await res.json();
+    } catch (err) {
+        console.warn('Local transcribe failed, trying production endpoint...', err);
+        const fallbackRes = await fetch(`${PRODUCTION_FALLBACK}/api/transcribe`, {
+            method: 'POST',
+            body: formData,
+        });
+        return await fallbackRes.json();
     }
-    return await res.json();
 };
 
 export const fetchSettings = async () => {

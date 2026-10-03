@@ -78,6 +78,7 @@ const ChatInterface = () => {
     const startListening = () => {
         setViewState('LISTENING');
         setTranscriptAccumulated('');
+        setInput('');
 
         const speechLangCode = language === 'hi' ? 'hi-IN' : language === 'en' ? 'en-IN' : 'mr-IN';
 
@@ -92,18 +93,30 @@ const ChatInterface = () => {
                 setRecognitionRef(recognition);
 
                 recognition.onresult = (event) => {
-                    let currentText = '';
-                    for (let i = event.resultIndex; i < event.results.length; ++i) {
-                        currentText += event.results[i][0].transcript;
+                    let interimTranscript = '';
+                    let finalTranscript = '';
+                    for (let i = 0; i < event.results.length; ++i) {
+                        const transcript = event.results[i][0].transcript;
+                        if (event.results[i].isFinal) {
+                            finalTranscript += transcript + ' ';
+                        } else {
+                            interimTranscript += transcript;
+                        }
                     }
-                    if (currentText) {
-                        setTranscriptAccumulated(currentText);
+                    const liveText = (finalTranscript + interimTranscript).trim();
+                    if (liveText) {
+                        setTranscriptAccumulated(liveText);
+                        setInput(liveText);
                     }
                 };
 
                 recognition.onerror = (err) => {
                     console.warn('Native speech recognition error, falling back to MediaRecorder...', err);
                     startMediaRecorderFallback();
+                };
+
+                recognition.onend = () => {
+                    // When native speech ends
                 };
 
                 recognition.start();
@@ -141,6 +154,7 @@ const ChatInterface = () => {
                         const result = await transcribeAudioBlob(audioBlob, language);
                         if (result.text && result.text.trim()) {
                             setTranscriptAccumulated(result.text);
+                            setInput(result.text);
                             handleSend(result.text);
                         } else {
                             setViewState('IDLE');
