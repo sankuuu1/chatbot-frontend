@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
     Mic,
@@ -15,17 +15,39 @@ import {
     HelpCircle,
     ChevronDown,
     Check,
-    X
+    X,
+    TrendingUp,
+    TrendingDown,
+    RefreshCw
 } from 'lucide-react';
 import bandhuLogo from '../assets/Gemini_Generated_Image_za4cfxza4cfxza4c-removebg-preview.png';
 import { useChat } from '../context/ChatContext';
+import { fetchMandiRates } from '../services/api';
 
 const HomeDashboard = () => {
     const navigate = useNavigate();
-    const { selectedLangLabel, setLanguage, t } = useChat();
+    const { language, selectedLangLabel, setLanguage, t } = useChat();
     const [searchInput, setSearchInput] = useState('');
     const [isLangModalOpen, setIsLangModalOpen] = useState(false);
     const [showAllCategories, setShowAllCategories] = useState(false);
+    const [mandiRates, setMandiRates] = useState([]);
+    const [loadingMandi, setLoadingMandi] = useState(true);
+
+    useEffect(() => {
+        const loadRates = async () => {
+            try {
+                const res = await fetchMandiRates(language);
+                if (res?.commodities) {
+                    setMandiRates(res.commodities);
+                }
+            } catch (e) {
+                console.warn('Could not load mandi rates:', e);
+            } finally {
+                setLoadingMandi(false);
+            }
+        };
+        loadRates();
+    }, [language]);
 
     const handleSearchSubmit = (e) => {
         if (e.key === 'Enter' && searchInput.trim()) {
@@ -253,6 +275,98 @@ const HomeDashboard = () => {
                     />
                 </div>
             </div>
+
+            {/* --- SECTION: LIVE AGMARKNET MANDI RATES CAROUSEL --- */}
+            {mandiRates && mandiRates.length > 0 && (
+                <div style={{ marginTop: '20px', padding: '0 20px' }}>
+                    <div style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        marginBottom: '10px'
+                    }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                            <span style={{ fontSize: '15px' }}>📊</span>
+                            <h4 style={{ fontSize: '15px', fontWeight: '800', color: '#111827', margin: 0 }}>
+                                {language === 'mr' ? 'थेट बाजारभाव (Mandi Rates)' : language === 'hi' ? 'ताज़ा मंडी भाव' : 'Live Mandi Rates'}
+                            </h4>
+                            <span style={{
+                                width: '7px',
+                                height: '7px',
+                                borderRadius: '50%',
+                                backgroundColor: '#16A34A',
+                                display: 'inline-block',
+                                animation: 'pulse 1.2s infinite'
+                            }} title="Agmarknet Live" />
+                        </div>
+                        <span style={{ fontSize: '11px', color: '#6B7280', fontWeight: '600' }}>
+                            महाराष्ट्र APMC
+                        </span>
+                    </div>
+
+                    {/* Horizontal Scrollable Crop Cards */}
+                    <div style={{
+                        display: 'flex',
+                        gap: '10px',
+                        overflowX: 'auto',
+                        paddingBottom: '6px'
+                    }}>
+                        {mandiRates.map((crop) => {
+                            const cropName = language === 'mr' ? crop.name_mr : language === 'hi' ? crop.name_hi : crop.name_en;
+                            const isUp = crop.trend === 'up';
+
+                            return (
+                                <div
+                                    key={crop.commodity_id}
+                                    onClick={() => navigate('/chat', { state: { query: `${cropName} चा आजचा बाजारभाव काय आहे आणि कधी विकावे?` } })}
+                                    style={{
+                                        background: 'white',
+                                        border: '1px solid #FFE0B2',
+                                        borderRadius: '16px',
+                                        padding: '12px 14px',
+                                        minWidth: '135px',
+                                        flexShrink: 0,
+                                        cursor: 'pointer',
+                                        boxShadow: '0 2px 8px rgba(230,81,0,0.06)',
+                                        display: 'flex',
+                                        flexDirection: 'column',
+                                        justifyContent: 'space-between'
+                                    }}
+                                >
+                                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '6px' }}>
+                                        <span style={{ fontSize: '20px' }}>{crop.icon}</span>
+                                        <span style={{
+                                            fontSize: '10px',
+                                            fontWeight: '800',
+                                            padding: '2px 6px',
+                                            borderRadius: '8px',
+                                            backgroundColor: isUp ? '#E8F5E9' : '#FFEBEE',
+                                            color: isUp ? '#2E7D32' : '#C62828',
+                                            display: 'inline-flex',
+                                            alignItems: 'center',
+                                            gap: '2px'
+                                        }}>
+                                            {isUp ? <TrendingUp size={10} /> : <TrendingDown size={10} />}
+                                            {crop.trend_percentage ? `${crop.trend_percentage}%` : (isUp ? 'तेजी' : 'मंदी')}
+                                        </span>
+                                    </div>
+                                    <div>
+                                        <p style={{ fontSize: '13px', fontWeight: '700', color: '#1F2937', margin: 0, lineHeight: '1.2' }}>
+                                            {cropName}
+                                        </p>
+                                        <p style={{ fontSize: '16px', fontWeight: '900', color: '#E65100', margin: '4px 0 0 0' }}>
+                                            ₹{Number(crop.modal_price).toLocaleString('en-IN')}
+                                        </p>
+                                        <p style={{ fontSize: '10px', color: '#9CA3AF', margin: 0 }}>
+                                            प्रति क्विंटल
+                                        </p>
+                                    </div>
+                                </div>
+                            );
+                        })}
+                    </div>
+                </div>
+            )}
 
             {/* --- SECTION 2: CATEGORY CARDS GRID (Positioned close to suggested questions) --- */}
             <div style={{ padding: '0 20px 24px', marginTop: '8px' }}>

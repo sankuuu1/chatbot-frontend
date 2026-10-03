@@ -90,3 +90,14 @@ export const saveSettings = async (settingsData) => {
     });
     return await res.json();
 };
+
+export const fetchMandiRates = async (language = 'mr') => {
+    try {
+        const res = await fetch(`${API_BASE_URL}/api/mandi-rates?lang=${language}`);
+        return await res.json();
+    } catch (err) {
+        console.warn('Local mandi rates failed, trying production endpoint...', err);
+        const res = await fetch(`${PRODUCTION_FALLBACK}/api/mandi-rates?lang=${language}`);
+        return await res.json();
+    }
+};
