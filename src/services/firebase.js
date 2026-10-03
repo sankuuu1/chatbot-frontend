@@ -160,6 +160,21 @@ export const signInWithGoogle = async () => {
 };
 
 /**
+ * Updates user's mobile number in their Firestore profile
+ */
+export const updateUserPhoneNumber = async (userId, phoneNumber) => {
+    if (!userId || !phoneNumber) return;
+    try {
+        await setDoc(doc(db, 'users', userId), {
+            phoneNumber: phoneNumber.startsWith('+91') ? phoneNumber : `+91${phoneNumber}`,
+            updatedAt: serverTimestamp()
+        }, { merge: true });
+    } catch (e) {
+        console.warn("[Firestore] Phone number update skipped:", e);
+    }
+};
+
+/**
  * Signs out current user
  */
 export const signOutUser = async () => {

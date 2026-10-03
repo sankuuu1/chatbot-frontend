@@ -4,6 +4,7 @@ import bgLogin from '../assets/bg-login.png';
 import { AlertCircle } from 'lucide-react';
 import bandhuLogo from '../assets/Gemini_Generated_Image_za4cfxza4cfxza4c-removebg-preview.png';
 import { useAuth } from '../context/AuthContext';
+import { updateUserPhoneNumber } from '../services/firebase';
 
 const LoginFlow = ({ step }) => {
     const navigate = useNavigate();
@@ -36,6 +37,9 @@ const LoginFlow = ({ step }) => {
     };
 
     const handleOtpSubmit = () => {
+        if (user?.uid && mobileNumber) {
+            updateUserPhoneNumber(user.uid, mobileNumber);
+        }
         navigate('/success');
     };
 
