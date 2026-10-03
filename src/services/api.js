@@ -101,3 +101,33 @@ export const fetchMandiRates = async (language = 'mr') => {
         return await res.json();
     }
 };
+
+export const fetchSchemes = async (category = '') => {
+    const url = category ? `${API_BASE_URL}/api/schemes?category=${category}` : `${API_BASE_URL}/api/schemes`;
+    const fallbackUrl = category ? `${PRODUCTION_FALLBACK}/api/schemes?category=${category}` : `${PRODUCTION_FALLBACK}/api/schemes`;
+    try {
+        const res = await fetch(url);
+        return await res.json();
+    } catch (err) {
+        const res = await fetch(fallbackUrl);
+        return await res.json();
+    }
+};
+
+export const checkSchemeEligibility = async (profileData) => {
+    try {
+        const res = await fetch(`${API_BASE_URL}/api/schemes/check-eligibility`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(profileData),
+        });
+        return await res.json();
+    } catch (err) {
+        const res = await fetch(`${PRODUCTION_FALLBACK}/api/schemes/check-eligibility`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(profileData),
+        });
+        return await res.json();
+    }
+};

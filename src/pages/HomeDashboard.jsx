@@ -23,12 +23,14 @@ import {
 import bandhuLogo from '../assets/Gemini_Generated_Image_za4cfxza4cfxza4c-removebg-preview.png';
 import { useChat } from '../context/ChatContext';
 import { fetchMandiRates } from '../services/api';
+import SchemeWizardModal from '../components/SchemeWizardModal';
 
 const HomeDashboard = () => {
     const navigate = useNavigate();
     const { language, selectedLangLabel, setLanguage, t } = useChat();
     const [searchInput, setSearchInput] = useState('');
     const [isLangModalOpen, setIsLangModalOpen] = useState(false);
+    const [isSchemeWizardOpen, setIsSchemeWizardOpen] = useState(false);
     const [showAllCategories, setShowAllCategories] = useState(false);
     const [mandiRates, setMandiRates] = useState([]);
     const [loadingMandi, setLoadingMandi] = useState(true);
@@ -271,7 +273,7 @@ const HomeDashboard = () => {
                     <SuggestionChip
                         icon="🏛️"
                         text={t?.suggestions?.schemes || "सरकारी योजना कोणती आहे?"}
-                        onClick={() => navigate('/chat', { state: { query: t?.suggestions?.schemes || "सरकारी योजना कोणती आहे?" } })}
+                        onClick={() => setIsSchemeWizardOpen(true)}
                     />
                 </div>
             </div>
@@ -431,7 +433,7 @@ const HomeDashboard = () => {
                                 arrowBg="#FFE0B2"
                                 arrowColor="#E65100"
                                 icon={<HelpCircle size={26} color="#EF6C00" strokeWidth={2} />}
-                                onClick={() => navigate('/chat', { state: { category: 'help' } })}
+                                onClick={() => setIsSchemeWizardOpen(true)}
                             />
                         </>
                     )}
@@ -538,6 +540,14 @@ const HomeDashboard = () => {
                     </div>
                 </div>
             )}
+
+            {/* --- GOVERNMENT SCHEMES ELIGIBILITY WIZARD MODAL --- */}
+            <SchemeWizardModal
+                isOpen={isSchemeWizardOpen}
+                onClose={() => setIsSchemeWizardOpen(false)}
+                onAskBandhu={(query) => navigate('/chat', { state: { query } })}
+                language={language}
+            />
 
             {/* --- BOTTOM NAVIGATION BAR --- */}
             <div style={{
