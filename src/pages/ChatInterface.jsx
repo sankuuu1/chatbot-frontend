@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { X, Mic, ChevronRight, MessageSquare, ArrowLeft } from 'lucide-react';
+import { X, Mic, ChevronRight, MessageSquare, ArrowLeft, Square, RefreshCw } from 'lucide-react';
 import RichResponseCard from '../components/RichResponseCard';
 import { fetchChatResponse, transcribeAudioBlob } from '../services/api';
 import { useChat } from '../context/ChatContext';
@@ -16,12 +16,21 @@ const ChatInterface = () => {
 
     const [input, setInput] = useState('');
     const [history, setHistory] = useState([]);
-    const [viewState, setViewState] = useState('IDLE'); // IDLE, LISTENING, THINKING
+    const [viewState, setViewState] = useState('IDLE'); // IDLE, LISTENING, PROCESSING, THINKING
     const [richData, setRichData] = useState(null);
-    const [recognitionRef, setRecognitionRef] = useState(null);
-    const [mediaRecorderRef, setMediaRecorderRef] = useState(null);
     const [transcriptAccumulated, setTranscriptAccumulated] = useState('');
+    const [audioVolume, setAudioVolume] = useState(0); // 0 to 100
+    const [recordingSeconds, setRecordingSeconds] = useState(0);
+
     const messagesEndRef = useRef(null);
+    const mediaRecorderRef = useRef(null);
+    const audioStreamRef = useRef(null);
+    const audioContextRef = useRef(null);
+    const analyserRef = useRef(null);
+    const animationFrameRef = useRef(null);
+    const timerIntervalRef = useRef(null);
+    const recognitionRef = useRef(null);
+    const audioChunksRef = useRef([]);
 
     const scrollToBottom = () => {
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -37,7 +46,34 @@ const ChatInterface = () => {
         } else if (location.state?.query) {
             handleSend(location.state.query);
         }
+        return () => {
+            cleanupAudio();
+        };
     }, [location.state]);
+
+    const cleanupAudio = () => {
+        if (timerIntervalRef.current) {
+            clearInterval(timerIntervalRef.current);
+            timerIntervalRef.current = null;
+        }
+        if (animationFrameRef.current) {
+            cancelAnimationFrame(animationFrameRef.current);
+            animationFrameRef.current = null;
+        }
+        if (recognitionRef.current) {
+            try { recognitionRef.current.abort(); } catch (e) {}
+            recognitionRef.current = null;
+        }
+        if (audioStreamRef.current) {
+            audioStreamRef.current.getTracks().forEach(track => track.stop());
+            audioStreamRef.current = null;
+        }
+        if (audioContextRef.current) {
+            try { audioContextRef.current.close(); } catch (e) {}
+            audioContextRef.current = null;
+        }
+        setAudioVolume(0);
+    };
 
     const handleSend = async (text = input) => {
         if (!text || !text.trim()) return;
@@ -75,121 +111,224 @@ const ChatInterface = () => {
         }
     };
 
-    const startListening = () => {
+    const startListening = async () => {
+        cleanupAudio();
         setViewState('LISTENING');
         setTranscriptAccumulated('');
-        setInput('');
+        setRecordingSeconds(0);
+        setAudioVolume(0);
+        audioChunksRef.current = [];
 
-        const speechLangCode = language === 'hi' ? 'hi-IN' : language === 'en' ? 'en-IN' : 'mr-IN';
-
-        if (('webkitSpeechRecognition' in window) || ('SpeechRecognition' in window)) {
-            try {
-                const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-                const recognition = new SpeechRecognition();
-                recognition.lang = speechLangCode;
-                recognition.continuous = true;
-                recognition.interimResults = true;
-
-                setRecognitionRef(recognition);
-
-                recognition.onresult = (event) => {
-                    let interimTranscript = '';
-                    let finalTranscript = '';
-                    for (let i = 0; i < event.results.length; ++i) {
-                        const transcript = event.results[i][0].transcript;
-                        if (event.results[i].isFinal) {
-                            finalTranscript += transcript + ' ';
-                        } else {
-                            interimTranscript += transcript;
-                        }
-                    }
-                    const liveText = (finalTranscript + interimTranscript).trim();
-                    if (liveText) {
-                        setTranscriptAccumulated(liveText);
-                        setInput(liveText);
-                    }
-                };
-
-                recognition.onerror = (err) => {
-                    console.warn('Native speech recognition error, falling back to MediaRecorder...', err);
-                    startMediaRecorderFallback();
-                };
-
-                recognition.onend = () => {
-                    // When native speech ends
-                };
-
-                recognition.start();
-                return;
-            } catch (e) {
-                console.warn('SpeechRecognition failed, falling back to MediaRecorder', e);
-            }
-        }
-
-        startMediaRecorderFallback();
-    };
-
-    const startMediaRecorderFallback = () => {
+        // Check if mediaDevices is supported
         if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-            alert("Microphone is not supported in your browser.");
+            alert(language === 'mr' ? 'तुमच्या ब्राउझरमध्ये मायक्रोफोन सपोर्ट नाही.' : 'Microphone is not supported in this browser.');
             setViewState('IDLE');
             return;
         }
 
-        navigator.mediaDevices.getUserMedia({ audio: true })
-            .then((stream) => {
-                const mediaRecorder = new MediaRecorder(stream);
-                setMediaRecorderRef(mediaRecorder);
-                const chunks = [];
-
-                mediaRecorder.ondataavailable = (e) => {
-                    if (e.data.size > 0) chunks.push(e.data);
-                };
-
-                mediaRecorder.onstop = async () => {
-                    stream.getTracks().forEach(track => track.stop());
-                    const audioBlob = new Blob(chunks, { type: 'audio/webm' });
-                    setViewState('THINKING');
-                    try {
-                        const result = await transcribeAudioBlob(audioBlob, language);
-                        if (result.text && result.text.trim()) {
-                            setTranscriptAccumulated(result.text);
-                            setInput(result.text);
-                            handleSend(result.text);
-                        } else {
-                            setViewState('IDLE');
-                        }
-                    } catch (err) {
-                        console.error('Whisper STT failed:', err);
-                        alert('Speech transcription error.');
-                        setViewState('IDLE');
-                    }
-                };
-
-                mediaRecorder.start();
-            })
-            .catch((err) => {
-                console.error("Microphone access denied:", err);
-                alert("Microphone access denied.");
-                setViewState('IDLE');
+        try {
+            // 1. Request microphone access
+            const stream = await navigator.mediaDevices.getUserMedia({
+                audio: {
+                    echoCancellation: true,
+                    noiseSuppression: true,
+                    autoGainControl: true
+                }
             });
-    };
+            audioStreamRef.current = stream;
 
-    const stopListening = () => {
-        if (recognitionRef) {
-            try { recognitionRef.stop(); } catch (e) { }
-            setRecognitionRef(null);
-            setViewState('IDLE');
-            if (transcriptAccumulated && transcriptAccumulated.trim()) {
-                handleSend(transcriptAccumulated.trim());
+            // 2. Setup Web Audio API Analyser for real-time soundwave meter
+            const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+            if (AudioContextClass) {
+                const audioCtx = new AudioContextClass();
+                if (audioCtx.state === 'suspended') {
+                    await audioCtx.resume();
+                }
+                audioContextRef.current = audioCtx;
+                const sourceNode = audioCtx.createMediaStreamSource(stream);
+                const analyserNode = audioCtx.createAnalyser();
+                analyserNode.fftSize = 128;
+                analyserNode.smoothingTimeConstant = 0.5;
+                sourceNode.connect(analyserNode);
+                analyserRef.current = analyserNode;
+
+                const dataArray = new Uint8Array(analyserNode.frequencyBinCount);
+                const checkVolume = () => {
+                    if (!analyserRef.current) return;
+                    analyserRef.current.getByteFrequencyData(dataArray);
+                    let sum = 0;
+                    for (let i = 0; i < dataArray.length; i++) {
+                        sum += dataArray[i];
+                    }
+                    const avg = sum / dataArray.length;
+                    const level = Math.min(100, Math.round((avg / 80) * 100));
+                    setAudioVolume(level);
+                    animationFrameRef.current = requestAnimationFrame(checkVolume);
+                };
+                checkVolume();
             }
-        } else if (mediaRecorderRef && mediaRecorderRef.state !== 'inactive') {
-            try { mediaRecorderRef.stop(); } catch (e) { }
-            setMediaRecorderRef(null);
-        } else {
+
+            // 3. Setup MediaRecorder for high-fidelity audio chunks
+            const mimeType = MediaRecorder.isTypeSupported('audio/webm;codecs=opus')
+                ? 'audio/webm;codecs=opus'
+                : MediaRecorder.isTypeSupported('audio/webm')
+                ? 'audio/webm'
+                : MediaRecorder.isTypeSupported('audio/mp4')
+                ? 'audio/mp4'
+                : '';
+
+            const mediaRecorder = mimeType
+                ? new MediaRecorder(stream, { mimeType })
+                : new MediaRecorder(stream);
+
+            mediaRecorder.ondataavailable = (event) => {
+                if (event.data && event.data.size > 0) {
+                    audioChunksRef.current.push(event.data);
+                }
+            };
+
+            mediaRecorder.start(200); // 200ms slice chunks
+            mediaRecorderRef.current = mediaRecorder;
+
+            // 4. Start recording timer
+            timerIntervalRef.current = setInterval(() => {
+                setRecordingSeconds(prev => prev + 1);
+            }, 1000);
+
+            // 5. Run native SpeechRecognition in parallel if available for live interim text
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            if (SpeechRecognition) {
+                try {
+                    const recognition = new SpeechRecognition();
+                    const speechLangCode = language === 'hi' ? 'hi-IN' : language === 'en' ? 'en-IN' : 'mr-IN';
+                    recognition.lang = speechLangCode;
+                    recognition.continuous = true;
+                    recognition.interimResults = true;
+
+                    recognition.onresult = (event) => {
+                        let interim = '';
+                        let final = '';
+                        for (let i = 0; i < event.results.length; i++) {
+                            const chunk = event.results[i][0].transcript;
+                            if (event.results[i].isFinal) {
+                                final += chunk + ' ';
+                            } else {
+                                interim += chunk;
+                            }
+                        }
+                        const live = (final + interim).trim();
+                        if (live) {
+                            setTranscriptAccumulated(live);
+                        }
+                    };
+
+                    recognition.onerror = (e) => {
+                        console.warn('Native speech recognition notice (Whisper will process full audio):', e?.error);
+                    };
+
+                    recognition.start();
+                    recognitionRef.current = recognition;
+                } catch (recErr) {
+                    console.warn('SpeechRecognition initialization skipped:', recErr);
+                }
+            }
+
+        } catch (err) {
+            console.error('Microphone access failed:', err);
+            cleanupAudio();
             setViewState('IDLE');
+            alert(language === 'mr'
+                ? 'मायक्रोफोन परवानगी नाकारली गेली आहे. कृपया ब्राऊझर सेटिंगमध्ये मायक्रोफोन सुरू करा.'
+                : 'Microphone permission denied. Please allow microphone access in browser settings.');
         }
     };
+
+    const stopListening = async () => {
+        const liveTranscript = transcriptAccumulated.trim();
+        setViewState('PROCESSING');
+
+        // Stop timer & animation
+        if (timerIntervalRef.current) {
+            clearInterval(timerIntervalRef.current);
+            timerIntervalRef.current = null;
+        }
+        if (animationFrameRef.current) {
+            cancelAnimationFrame(animationFrameRef.current);
+            animationFrameRef.current = null;
+        }
+
+        // Stop native speech recognition
+        if (recognitionRef.current) {
+            try { recognitionRef.current.stop(); } catch (e) {}
+            recognitionRef.current = null;
+        }
+
+        const mediaRecorder = mediaRecorderRef.current;
+        if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+            mediaRecorder.onstop = async () => {
+                // Collect audio blob
+                const audioBlob = new Blob(audioChunksRef.current, {
+                    type: mediaRecorder.mimeType || 'audio/webm'
+                });
+
+                cleanupAudio();
+
+                // If native speech recognition already captured clear text, we can use it immediately!
+                if (liveTranscript.length > 3) {
+                    setInput(liveTranscript);
+                    handleSend(liveTranscript);
+                    return;
+                }
+
+                // Otherwise, use Groq Whisper STT on backend for guaranteed regional accuracy
+                try {
+                    const result = await transcribeAudioBlob(audioBlob, language);
+                    const recognizedText = result?.text?.trim();
+
+                    if (recognizedText && recognizedText.length > 0) {
+                        setTranscriptAccumulated(recognizedText);
+                        setInput(recognizedText);
+                        handleSend(recognizedText);
+                    } else {
+                        alert(language === 'mr' ? 'आवाज स्पष्ट ऐकू आला नाही. कृपया पुन्हा बोला.' : 'No clear speech detected. Please speak again.');
+                        setViewState('IDLE');
+                    }
+                } catch (err) {
+                    console.error('Groq Whisper STT failed:', err);
+                    if (liveTranscript) {
+                        setInput(liveTranscript);
+                        handleSend(liveTranscript);
+                    } else {
+                        alert(language === 'mr' ? 'आवाज ओळखण्यात अडचण आली. कृपया पुन्हा प्रयत्न करा.' : 'Voice recognition failed. Please try again.');
+                        setViewState('IDLE');
+                    }
+                }
+            };
+
+            mediaRecorder.stop();
+        } else {
+            cleanupAudio();
+            if (liveTranscript) {
+                setInput(liveTranscript);
+                handleSend(liveTranscript);
+            } else {
+                setViewState('IDLE');
+            }
+        }
+    };
+
+    const cancelListening = () => {
+        cleanupAudio();
+        setTranscriptAccumulated('');
+        setViewState('IDLE');
+    };
+
+    const formatTimer = (sec) => {
+        const m = Math.floor(sec / 60);
+        const s = sec % 60;
+        return `${m < 10 ? '0' : ''}${m}:${s < 10 ? '0' : ''}${s}`;
+    };
+
 
     return (
         <div style={{
@@ -212,66 +351,132 @@ const ChatInterface = () => {
                     flexDirection: 'column',
                     alignItems: 'center',
                     justifyContent: 'space-between',
-                    padding: '40px 20px 60px'
+                    padding: '40px 20px 50px'
                 }}>
-                    <div style={{ textAlign: 'center', marginTop: '20px' }}>
-                        <span style={{
+                    {/* Top status */}
+                    <div style={{ textAlign: 'center', marginTop: '10px' }}>
+                        <div style={{
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '8px',
                             background: '#FFE0B2',
                             color: '#E65100',
-                            fontSize: '12px',
+                            fontSize: '13px',
                             fontWeight: '800',
-                            padding: '6px 16px',
+                            padding: '6px 18px',
                             borderRadius: '20px',
-                            display: 'inline-block',
                             marginBottom: '12px'
                         }}>
-                            {t?.micActive || '🎙️ Microphone is Active'}
-                        </span>
-                        <h2 style={{ fontSize: '26px', fontWeight: '900', color: '#111827', margin: 0 }}>
-                            {t?.voiceListening || 'Bandhu is listening...'}
+                            <span style={{
+                                width: '8px',
+                                height: '8px',
+                                borderRadius: '50%',
+                                backgroundColor: '#E65100',
+                                display: 'inline-block',
+                                animation: 'pulse 1s infinite'
+                            }}></span>
+                            <span>{formatTimer(recordingSeconds)}</span>
+                            <span>•</span>
+                            <span>{t?.micActive || '🎙️ मायक्रोफोन सुरू आहे'}</span>
+                        </div>
+                        <h2 style={{ fontSize: '24px', fontWeight: '900', color: '#111827', margin: '0 0 6px 0' }}>
+                            {t?.voiceListening || 'बंधू ऐकत आहेत...'}
                         </h2>
-                        <p style={{ fontSize: '14px', color: '#6B7280', marginTop: '6px', fontWeight: '500' }}>
-                            {t?.speakClearly || 'Speak your question clearly'}
+                        <p style={{ fontSize: '14px', color: '#6B7280', margin: 0, fontWeight: '500' }}>
+                            {t?.speakClearly || 'तुमचा प्रश्न स्पष्टपणे बोला'}
                         </p>
                     </div>
 
+                    {/* Animated Microphone Radar / Ripple Circles */}
                     <div style={{
                         position: 'relative',
-                        width: '160px',
-                        height: '160px',
+                        width: '200px',
+                        height: '200px',
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
-                        margin: '20px 0'
+                        margin: '10px 0'
                     }}>
+                        {/* Outer pulsating aura */}
                         <div style={{
-                            width: '100px',
-                            height: '100px',
+                            position: 'absolute',
+                            width: '180px',
+                            height: '180px',
+                            borderRadius: '50%',
+                            backgroundColor: 'rgba(230, 81, 0, 0.12)',
+                            transform: `scale(${1 + (audioVolume / 100) * 0.45})`,
+                            transition: 'transform 0.1s ease-out',
+                            zIndex: 1
+                        }} />
+                        <div style={{
+                            position: 'absolute',
+                            width: '140px',
+                            height: '140px',
+                            borderRadius: '50%',
+                            backgroundColor: 'rgba(255, 111, 0, 0.22)',
+                            transform: `scale(${1 + (audioVolume / 100) * 0.25})`,
+                            transition: 'transform 0.1s ease-out',
+                            zIndex: 2
+                        }} />
+
+                        {/* Center Mic Button */}
+                        <div style={{
+                            width: '96px',
+                            height: '96px',
                             borderRadius: '50%',
                             background: 'linear-gradient(135deg, #FF6F00 0%, #E65100 100%)',
                             border: '5px solid white',
-                            boxShadow: '0 12px 30px rgba(230,81,0,0.4)',
+                            boxShadow: `0 12px 35px rgba(230,81,0,${0.35 + (audioVolume / 200)})`,
                             display: 'flex',
                             alignItems: 'center',
                             justifyContent: 'center',
                             color: 'white',
-                            zIndex: 10
+                            zIndex: 10,
+                            transform: `scale(${1 + (audioVolume / 300)})`,
+                            transition: 'transform 0.08s ease-out'
                         }}>
-                            <Mic size={48} strokeWidth={2.2} />
+                            <Mic size={44} strokeWidth={2.4} />
                         </div>
                     </div>
 
-                    <div style={{ width: '100%', maxWidth: '340px', textAlign: 'center' }}>
+                    {/* Soundwave Equalizer Bars */}
+                    <div style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: '6px',
+                        height: '40px',
+                        marginBottom: '8px'
+                    }}>
+                        {[0.6, 0.9, 1.2, 1.0, 1.3, 0.8, 0.5].map((multiplier, idx) => {
+                            const barHeight = Math.max(8, Math.min(38, (audioVolume * 0.4 * multiplier) + (idx % 2 === 0 ? 8 : 12)));
+                            return (
+                                <div
+                                    key={idx}
+                                    style={{
+                                        width: '6px',
+                                        height: `${barHeight}px`,
+                                        borderRadius: '4px',
+                                        backgroundColor: audioVolume > 10 ? '#E65100' : '#D1D5DB',
+                                        transition: 'height 0.08s ease, background-color 0.15s ease'
+                                    }}
+                                />
+                            );
+                        })}
+                    </div>
+
+                    {/* Live Transcript / Speech Bubble */}
+                    <div style={{ width: '100%', maxWidth: '360px', textAlign: 'center' }}>
                         <div style={{
                             background: 'white',
-                            border: '1px solid #FFE0B2',
-                            borderRadius: '18px',
+                            border: '1.5px solid #FFE0B2',
+                            borderRadius: '20px',
                             padding: '16px 20px',
-                            minHeight: '70px',
+                            minHeight: '76px',
                             display: 'flex',
                             alignItems: 'center',
                             justifyContent: 'center',
-                            boxShadow: '0 4px 15px rgba(230,81,0,0.06)'
+                            boxShadow: '0 6px 20px rgba(230,81,0,0.07)'
                         }}>
                             <p style={{
                                 fontSize: '16px',
@@ -280,33 +485,90 @@ const ChatInterface = () => {
                                 margin: 0,
                                 lineHeight: '1.4'
                             }}>
-                                {transcriptAccumulated || t?.voiceListening}
+                                {transcriptAccumulated || (language === 'mr' ? 'बोलत राहा... तुमचा आवाज ऐकला जात आहे' : language === 'hi' ? 'बोलते रहिए... आपकी आवाज़ सुनी जा रही है' : 'Speak now... listening to your voice')}
                             </p>
                         </div>
                     </div>
 
-                    <button
-                        onClick={stopListening}
-                        style={{
-                            background: '#E65100',
-                            color: 'white',
-                            border: 'none',
-                            borderRadius: '30px',
-                            padding: '16px 48px',
-                            fontSize: '17px',
-                            fontWeight: '800',
-                            cursor: 'pointer',
-                            boxShadow: '0 6px 20px rgba(230,81,0,0.35)',
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '10px'
-                        }}
-                    >
-                        <span>{t?.doneSpeaking || 'Done Speaking'}</span>
-                        <ChevronRight size={20} />
-                    </button>
+                    {/* Action Controls */}
+                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px', width: '100%', maxWidth: '320px' }}>
+                        <button
+                            onClick={stopListening}
+                            style={{
+                                width: '100%',
+                                background: 'linear-gradient(135deg, #FF6F00 0%, #E65100 100%)',
+                                color: 'white',
+                                border: 'none',
+                                borderRadius: '30px',
+                                padding: '15px 28px',
+                                fontSize: '17px',
+                                fontWeight: '800',
+                                cursor: 'pointer',
+                                boxShadow: '0 6px 22px rgba(230,81,0,0.35)',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                gap: '10px'
+                            }}
+                        >
+                            <Square size={18} fill="white" />
+                            <span>{t?.doneSpeaking || 'बोलणे पूर्ण झाले (Done)'}</span>
+                        </button>
+
+                        <button
+                            onClick={cancelListening}
+                            style={{
+                                background: 'transparent',
+                                color: '#6B7280',
+                                border: 'none',
+                                fontSize: '14px',
+                                fontWeight: '600',
+                                cursor: 'pointer',
+                                padding: '6px 16px'
+                            }}
+                        >
+                            {language === 'mr' ? 'रद्द करा (Cancel)' : language === 'hi' ? 'रद्द करें (Cancel)' : 'Cancel'}
+                        </button>
+                    </div>
                 </div>
             )}
+
+            {/* --- SPEECH PROCESSING OVERLAY --- */}
+            {viewState === 'PROCESSING' && (
+                <div style={{
+                    position: 'fixed',
+                    inset: 0,
+                    background: 'rgba(255, 253, 249, 0.95)',
+                    backdropFilter: 'blur(4px)',
+                    zIndex: 100,
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    padding: '20px'
+                }}>
+                    <div style={{
+                        width: '72px',
+                        height: '72px',
+                        borderRadius: '50%',
+                        background: '#FFE0B2',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        color: '#E65100',
+                        marginBottom: '20px'
+                    }}>
+                        <RefreshCw size={36} className="ani-spin" style={{ animation: 'spin 1.2s linear infinite' }} />
+                    </div>
+                    <h3 style={{ fontSize: '20px', fontWeight: '800', color: '#111827', margin: '0 0 8px 0' }}>
+                        {language === 'mr' ? 'आवाज ओळखत आहे...' : language === 'hi' ? 'आवाज़ पहचानी जा रही है...' : 'Transcribing voice...'}
+                    </h3>
+                    <p style={{ fontSize: '14px', color: '#6B7280', margin: 0 }}>
+                        {language === 'mr' ? 'कृपया एक सेकंद थांबा' : language === 'hi' ? 'कृपया एक सेकंड प्रतीक्षा करें' : 'Please wait a moment'}
+                    </p>
+                </div>
+            )}
+
 
             {/* --- HEADER --- */}
             <div style={{
