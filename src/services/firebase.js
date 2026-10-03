@@ -64,6 +64,21 @@ isSupported().then((supported) => {
  */
 export const logPageView = (pagePath, pageTitle) => {
     console.log(`%c📊 [Firebase Analytics] Page View: ${pagePath} (${pageTitle || ''})`, "color: #E65100; font-weight: bold;");
+    
+    // 1. Direct gtag dispatch (Instant GA4 verification)
+    if (typeof window !== 'undefined' && typeof window.gtag === 'function') {
+        try {
+            window.gtag('event', 'page_view', {
+                page_path: pagePath,
+                page_title: pageTitle || pagePath,
+                page_location: window.location.href
+            });
+        } catch (e) {
+            console.warn("[gtag] Page view error:", e);
+        }
+    }
+
+    // 2. Firebase SDK dispatch
     if (analyticsInstance) {
         try {
             logEvent(analyticsInstance, 'page_view', {
@@ -82,6 +97,17 @@ export const logPageView = (pagePath, pageTitle) => {
  */
 export const logCustomEvent = (eventName, params = {}) => {
     console.log(`%c⚡ [Firebase Event] ${eventName}:`, "color: #1565C0; font-weight: bold;", params);
+    
+    // 1. Direct gtag dispatch
+    if (typeof window !== 'undefined' && typeof window.gtag === 'function') {
+        try {
+            window.gtag('event', eventName, params);
+        } catch (e) {
+            console.warn("[gtag] Event error:", e);
+        }
+    }
+
+    // 2. Firebase SDK dispatch
     if (analyticsInstance) {
         try {
             logEvent(analyticsInstance, eventName, {
