@@ -13,6 +13,7 @@ import {
     Sprout,
     Heart,
     HelpCircle,
+    Landmark,
     ChevronDown,
     Check,
     X,
@@ -422,17 +423,17 @@ const HomeDashboard = () => {
                                 onClick={() => navigate('/chat', { state: { category: 'health' } })}
                             />
 
-                            {/* HELP CARD - SOFT AMBER TINT */}
+                            {/* GOVT SCHEMES CARD - SOFT AMBER TINT */}
                             <CategoryCard
-                                title={t?.categories?.schemes || "मदत व योजना"}
-                                subtitle={t?.categorySubtitles?.schemes || "दैनंदिन प्रश्न, सरकारी माहिती, इतर मदत"}
+                                title={t?.categories?.schemes || "सरकारी योजना माहिती"}
+                                subtitle={t?.categorySubtitles?.schemes || "पात्रता, कागदपत्रे, अनुदान व अर्ज माहिती"}
                                 titleColor="#E65100"
                                 cardBg="#FFFDF0"
                                 cardBorder="#FEF3C7"
                                 badgeBg="#FFF3E0"
                                 arrowBg="#FFE0B2"
                                 arrowColor="#E65100"
-                                icon={<HelpCircle size={26} color="#EF6C00" strokeWidth={2} />}
+                                icon={<Landmark size={26} color="#EF6C00" strokeWidth={2} />}
                                 onClick={() => setIsSchemeWizardOpen(true)}
                             />
                         </>

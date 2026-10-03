@@ -19,7 +19,7 @@ export const translations = {
             all: "सर्व",
             farming: "शेती",
             education: "शिक्षण",
-            schemes: "मदत व योजना",
+            schemes: "सरकारी योजना माहिती",
             local: "स्थानिक",
             jobs: "रोजगार",
             health: "आरोग्य"
@@ -28,7 +28,7 @@ export const translations = {
             farming: "पीक, कीड, बाजारभाव, फवारणी सल्ला",
             education: "अभ्यास, गृहपाठ, प्रश्न व स्पष्टीकरण",
             health: "लक्षणे, प्राथमिक माहिती, आरोग्य सल्ला",
-            schemes: "दैनंदिन प्रश्न, सरकारी माहिती, इतर मदत"
+            schemes: "पात्रता, कागदपत्रे, अनुदान व अर्ज माहिती"
         },
         suggestions: {
             rain: "आज पाऊस पडेल का?",
@@ -66,7 +66,7 @@ export const translations = {
             all: "सभी",
             farming: "कृषि",
             education: "शिक्षा",
-            schemes: "सहायता एवं योजनाएं",
+            schemes: "सरकारी योजनाएं व सब्सिडी",
             local: "स्थानीय",
             jobs: "रोजगार",
             health: "स्वास्थ्य"
@@ -75,7 +75,7 @@ export const translations = {
             farming: "फसल, कीट, मंडी भाव, छिड़काव सलाह",
             education: "गृहकार्य, अवधारणाएं, गणित के सूत्र",
             health: "लक्षण, प्राथमिक जानकारी, स्वास्थ्य सलाह",
-            schemes: "सरकारी योजनाएं, दैनिक प्रश्न, सहायता"
+            schemes: "पात्रता, दस्तावेज, सब्सिडी व आवेदन"
         },
         suggestions: {
             rain: "क्या आज बारिश होगी?",
@@ -113,7 +113,7 @@ export const translations = {
             all: "All",
             farming: "Farming",
             education: "Education",
-            schemes: "Help & Schemes",
+            schemes: "Government Schemes",
             local: "Local",
             jobs: "Jobs",
             health: "Health"
@@ -122,7 +122,7 @@ export const translations = {
             farming: "Crops, pests, mandi prices, advisory",
             education: "Homework, concepts, math formulas",
             health: "Symptoms, first-aid, health tips",
-            schemes: "Govt schemes, daily help, Q&A"
+            schemes: "Eligibility, subsidies, documents & apply"
         },
         suggestions: {
             rain: "Will it rain today?",
